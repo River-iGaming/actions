@@ -1,0 +1,12 @@
+name: 'Version Branch Generator'
+description: 'Generates the version based on the branch name'
+inputs:
+  package-version:  # id of input
+    description: 'Package version'
+    required: true
+outputs:
+  app-version: # id of output
+    description: 'The app version generated'
+runs:
+  using: 'node12'
+  main: 'index.js'
