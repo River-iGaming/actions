@@ -70,5 +70,5 @@ function normalizeBranchName(branchName, trimPrefix) {
     if (trimPrefix) {
         branchName = branchName.substring(branchName.indexOf('/') + 1);
     }
-    branchName.replace('/', '-').toLowerCase()
+    return branchName.replace('/', '-').toLowerCase()
 }
