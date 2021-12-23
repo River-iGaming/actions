@@ -15,7 +15,7 @@ try {
             appVersion = generateLibraryVersionString(branch, version, runNumber);
             break;
         case 'deploy':
-            appVersion = generateDeployableVersionString(branchName, version, runNumber);
+            appVersion = generateDeployableVersionString(branch, version, runNumber);
             break;
         default:
             throw `'${type}' is not a valid type for this action`;
