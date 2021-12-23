@@ -5,29 +5,70 @@ try {
     const branch = github.context.ref.replace('refs/heads/', '');
     const version = core.getInput('package-version');
     const runNumber = github.context.runNumber;
+    const type = core.getInput('type');
     console.log(`Branch ${branch}`);
     console.log(`Version: ${version}`)
+    let appVersion;
 
-    var appVersion;
+    switch(type) {
+        case 'lib':
+            appVersion = generateLibraryVersionString(branch, version, runNumber);
+            break;
+        case 'deploy':
+            appVersion = generateDeployableVersionString(branchName, version, runNumber);
+            break;
+        default:
+            throw `'${type}' is not a valid type for this action`;
+    }
+    
+    core.notice(`App version: ${appVersion}`);
+    core.setOutput("app-version", appVersion);    
+} catch (error) {
+    core.setFailed(error.message);
+}
 
+function generateLibraryVersionString(branch, version, runNumber) {
     switch(branch) {
         case 'main':
         case 'master':
-            appVersion = version;
-            break;
+            return version;
         case 'develop':
-            appVersion = `${version}-dev-${runNumber}`;
-            break;
+            return generateFinalVersionName(version, 'dev', runNumber);            
         case branch && branch.startsWith('hotfix'):
-            appVersion = `${version}-hotfix-${runNumber}`;
-            break;
+            return generateFinalVersionName(version, 'hotfix', runNumber);
         default:
-            appVersion = `${version}-${branch.replace('/', '-')}-${runNumber}`;
+            return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);            
+    }
+}
+
+function generateDeployableVersionString(branch, version, runNumber) {
+    if (branch === 'main' || branch === 'master') {
+        return version;
     }
 
-    core.notice(`App version: ${appVersion}`);
+    if (branch.startsWith('feature')) {
+        return generateFinalVersionName(version, "demo-" + normalizeBranchName(branch, true), runNumber);            
+    } 
 
-    core.setOutput("app-version", appVersion);
-} catch (error) {
-    core.setFailed(error.message);
+    if (branch.startsWith('hotfix')) {
+        return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
+    }
+
+    if (branch === 'develop') {
+        return generateFinalVersionName(version, 'dev', runNumber);
+    }
+
+    return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);            
+
+}
+
+function generateFinalVersionName(version, descriptor, runNumber) {
+    return `${version}-${descriptor}-${runNumber}`;
+}
+
+function normalizeBranchName(branchName, trimPrefix) {
+    if (trimPrefix) {
+        branchName = branchName.substring(branchName.indexOf('/') + 1);
+    }
+    branchName.replace('/', '-').toLowerCase()
 }
