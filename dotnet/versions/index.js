@@ -10,7 +10,8 @@ try {
     switch (github.context.eventName) {
         case "pull_request":
             console.log("Determining version number from 'pull_request' event");
-            branch = process.env.GITHUB_REF;
+            // branch = process.env.GITHUB_HEAD_REF;
+            branch = github.context.payload.pull_request.head.ref;
             break;
 
         case "push":
