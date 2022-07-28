@@ -5,6 +5,8 @@ try {
     var branch;
     var isTag = false;
 
+    console.log(JSON.stringify(github.context));
+
     switch (github.context.eventName) {
         case "pull_request":
             branch = process.env.GITHUB_REF;
