@@ -4,7 +4,7 @@ inputs:
   type:
     description: Can be 'lib' or 'deploy'
     required: true
-  package-version:
+  package-version:  # id of input
     description: 'Package version'
     required: true
 outputs:
