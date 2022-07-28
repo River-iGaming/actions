@@ -9,11 +9,13 @@ try {
 
     switch (github.context.eventName) {
         case "pull_request":
+            console.log("Determining version number from 'pull_request' event");
             branch = process.env.GITHUB_REF;
             break;
 
         case "push":
         default:
+            console.log(`Determining version number from '${github.context.eventName}' event`);
             branch = github.context.ref;
 
             if (branch.startsWith('refs/tags/')) {
