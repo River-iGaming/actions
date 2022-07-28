@@ -7,6 +7,10 @@ inputs:
   package-version:  # id of input
     description: 'Package version'
     required: true
+  tag-version-index:
+    description: Index of the version number within the parts of a tag.
+    required: false
+    default: 0
 outputs:
   app-version:
     description: 'The app version generated'

@@ -20,7 +20,6 @@ try {
             if (branch.startsWith('refs/tags/')) {
                 isTag = true;
                 branch = branch.replace('refs/tags/', '');
-                version = branch.replace('refs/tags/', '');
             }
             else if (branch.startsWith('refs/heads/')) {
                 branch = github.context.ref.replace('refs/heads/', '');
@@ -50,8 +49,13 @@ try {
         core.setOutput("app-version", appVersion);
     }
     else {
-        core.notice(`App version: ${version}`);
-        core.setOutput("app-version", version);
+
+        versionIndex = parseInt(core.getInput('tag-version-index'));
+
+        appVersion = branch.replace('refs/tags/', '').split('/')[versionIndex];
+
+        core.notice(`App version: ${appVersion}`);
+        core.setOutput("app-version", appVersion);
     }
 } catch (error) {
     core.setFailed(error.message);
