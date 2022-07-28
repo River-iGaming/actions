@@ -5,8 +5,6 @@ try {
     var branch;
     var isTag = false;
 
-    console.log(JSON.stringify(github.context));
-
     switch (github.context.eventName) {
         case "pull_request":
             console.log("Determining version number from 'pull_request' event");
