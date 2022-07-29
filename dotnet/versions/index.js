@@ -2,32 +2,107 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 
 try {
-    const branch = github.context.ref.replace('refs/heads/', '');
-    const version = core.getInput('package-version');
-    const runNumber = github.context.runNumber;
-    console.log(`Branch ${branch}`);
-    console.log(`Version: ${version}`)
+    var branch;
+    var isTag = false;
 
-    var appVersion;
+    switch (github.context.eventName) {
+        case "pull_request":
+            console.log("Determining version number from 'pull_request' event");
+            // branch = process.env.GITHUB_HEAD_REF;
+            branch = github.context.payload.pull_request.head.ref;
+            break;
 
+        case "push":
+        default:
+            console.log(`Determining version number from '${github.context.eventName}' event`);
+            branch = github.context.ref;
+
+            if (branch.startsWith('refs/tags/')) {
+                isTag = true;
+                branch = branch.replace('refs/tags/', '');
+            }
+            else if (branch.startsWith('refs/heads/')) {
+                branch = github.context.ref.replace('refs/heads/', '');
+            }
+    }
+
+    if (!isTag) {
+        version = core.getInput('package-version');
+        const runNumber = github.context.runNumber;
+        const type = core.getInput('type');
+        console.log(`Branch ${branch}`);
+        console.log(`Version: ${version}`)
+        let appVersion;
+
+        switch(type) {
+            case 'lib':
+                appVersion = generateLibraryVersionString(branch, version, runNumber);
+                break;
+            case 'deploy':
+                appVersion = generateDeployableVersionString(branch, version, runNumber);
+                break;
+            default:
+                throw `'${type}' is not a valid type for this action`;
+        }
+
+        core.notice(`App version: ${appVersion}`);
+        core.setOutput("app-version", appVersion);
+    }
+    else {
+
+        versionIndex = parseInt(core.getInput('tag-version-index'));
+
+        appVersion = branch.replace('refs/tags/', '').split('/')[versionIndex];
+
+        core.notice(`App version: ${appVersion}`);
+        core.setOutput("app-version", appVersion);
+    }
+} catch (error) {
+    core.setFailed(error.message);
+}
+
+function generateLibraryVersionString(branch, version, runNumber) {
     switch(branch) {
         case 'main':
         case 'master':
-            appVersion = version;
-            break;
+            return version;
         case 'develop':
-            appVersion = `${version}-dev-${runNumber}`;
-            break;
+            return generateFinalVersionName(version, 'dev', runNumber);
         case branch && branch.startsWith('hotfix'):
-            appVersion = `${version}-hotfix-${runNumber}`;
-            break;
+            return generateFinalVersionName(version, 'hotfix', runNumber);
         default:
-            appVersion = `${version}-${branch.replace('/', '-')}-${runNumber}`;
+            return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
+    }
+}
+
+function generateDeployableVersionString(branch, version, runNumber) {
+    if (branch === 'main' || branch === 'master') {
+        return version;
     }
 
-    core.notice(`App version: ${appVersion}`);
+    if (branch.startsWith('feature')) {
+        return generateFinalVersionName(version, "demo-" + normalizeBranchName(branch, true), runNumber);
+    }
 
-    core.setOutput("app-version", appVersion);
-} catch (error) {
-    core.setFailed(error.message);
+    if (branch.startsWith('hotfix')) {
+        return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
+    }
+
+    if (branch === 'develop') {
+        return generateFinalVersionName(version, 'dev', runNumber);
+    }
+
+    return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
+
+}
+
+function generateFinalVersionName(version, descriptor, runNumber) {
+    return `${version}-${descriptor}-${runNumber}`;
+}
+
+function normalizeBranchName(branchName, trimPrefix) {
+    if (trimPrefix) {
+        branchName = branchName.substring(branchName.indexOf('/') + 1);
+    }
+    return branchName.replace('/', '-').toLowerCase()
 }

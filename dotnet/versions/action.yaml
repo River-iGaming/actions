@@ -1,11 +1,18 @@
 name: 'Version Branch Generator'
 description: 'Generates the version based on the branch name'
 inputs:
+  type:
+    description: Can be 'lib' or 'deploy'
+    required: true
   package-version:  # id of input
     description: 'Package version'
     required: true
+  tag-version-index:
+    description: Index of the version number within the parts of a tag.
+    required: false
+    default: 0
 outputs:
-  app-version: # id of output
+  app-version:
     description: 'The app version generated'
 runs:
   using: 'node12'
