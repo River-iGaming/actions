@@ -10,7 +10,7 @@ try {
     console.log(`Version: ${version}`)
     let appVersion;
 
-    switch(type) {
+    switch (type) {
         case 'lib':
             appVersion = generateLibraryVersionString(branch, version, runNumber);
             break;
@@ -20,24 +20,24 @@ try {
         default:
             throw `'${type}' is not a valid type for this action`;
     }
-    
+
     core.notice(`App version: ${appVersion}`);
-    core.setOutput("app-version", appVersion);    
+    core.setOutput("app-version", appVersion);
 } catch (error) {
     core.setFailed(error.message);
 }
 
 function generateLibraryVersionString(branch, version, runNumber) {
-    switch(branch) {
+    switch (branch) {
         case 'main':
         case 'master':
             return version;
         case 'develop':
-            return generateFinalVersionName(version, 'dev', runNumber);            
+            return generateFinalVersionName(version, 'dev', runNumber);
         case branch && branch.startsWith('hotfix'):
             return generateFinalVersionName(version, 'hotfix', runNumber);
         default:
-            return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);            
+            return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
     }
 }
 
@@ -47,8 +47,8 @@ function generateDeployableVersionString(branch, version, runNumber) {
     }
 
     if (branch.startsWith('feature')) {
-        return generateFinalVersionName(version, "demo-" + normalizeBranchName(branch, true), runNumber);            
-    } 
+        return generateFinalVersionName(version, "demo-" + normalizeBranchName(branch, true), runNumber);
+    }
 
     if (branch.startsWith('hotfix')) {
         return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
@@ -58,7 +58,7 @@ function generateDeployableVersionString(branch, version, runNumber) {
         return generateFinalVersionName(version, 'dev', runNumber);
     }
 
-    return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);            
+    return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
 
 }
 
