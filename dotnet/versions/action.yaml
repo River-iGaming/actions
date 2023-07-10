@@ -1,15 +1,15 @@
-name: 'Version Branch Generator'
-description: 'Generates the version based on the branch name'
+name: "Version Branch Generator"
+description: "Generates the version based on the branch name"
 inputs:
   type:
     description: Can be 'lib' or 'deploy'
     required: true
   package-version:
-    description: 'Package version'
+    description: "Package version"
     required: true
 outputs:
   app-version:
-    description: 'The app version generated'
+    description: "The app version generated"
 runs:
-  using: 'node12'
-  main: 'index.js'
+  using: "node16"
+  main: "index.js"
