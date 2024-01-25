@@ -36,6 +36,8 @@ function generateLibraryVersionString(branch, version, runNumber) {
             return generateFinalVersionName(version, 'dev', runNumber);
         case branch && branch.startsWith('hotfix'):
             return generateFinalVersionName(version, 'hotfix', runNumber);
+        case branch && branch.startsWith('release'):
+            return generateFinalVersionName(version, "", runNumber);
         default:
             return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
     }
@@ -54,16 +56,19 @@ function generateDeployableVersionString(branch, version, runNumber) {
         return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
     }
 
+    if (branch.startsWith('release')) {
+        return generateFinalVersionName(version, "", runNumber);
+    }
+
     if (branch === 'develop') {
         return generateFinalVersionName(version, 'dev', runNumber);
     }
 
     return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
-
 }
 
 function generateFinalVersionName(version, descriptor, runNumber) {
-    return `${version}-${descriptor}-${runNumber}`;
+    return [version, descriptor, runNumber].filter(x => x).join("-");
 }
 
 function normalizeBranchName(branchName, trimPrefix) {
