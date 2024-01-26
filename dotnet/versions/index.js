@@ -57,7 +57,7 @@ function generateDeployableVersionString(branch, version, runNumber) {
     }
 
     if (branch.startsWith('release')) {
-        return generateFinalVersionName(version, "", runNumber);
+        return generateFinalVersionName(version, normalizeBranchName(branch, true), runNumber);
     }
 
     if (branch === 'develop') {
