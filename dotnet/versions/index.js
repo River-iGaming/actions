@@ -28,16 +28,16 @@ try {
 }
 
 function generateLibraryVersionString(branch, version, runNumber) {
+    if (branch && branch.startsWith('release')) {
+        return generateFinalVersionName(version, normalizeBranchName(branch, true), runNumber);
+    }
+
     switch (branch) {
         case 'main':
         case 'master':
             return version;
         case 'develop':
             return generateFinalVersionName(version, 'dev', runNumber);
-        case branch && branch.startsWith('hotfix'):
-            return generateFinalVersionName(version, 'hotfix', runNumber);
-        case branch && branch.startsWith('release'):
-            return generateFinalVersionName(version, "", runNumber);
         default:
             return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
     }
