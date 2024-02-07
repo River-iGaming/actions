@@ -11,5 +11,5 @@ outputs:
   app-version:
     description: "The app version generated"
 runs:
-  using: "node16"
+  using: "node20"
   main: "index.js"
