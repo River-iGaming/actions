@@ -45,7 +45,7 @@ function generateLibraryVersionString(branch, version, runNumber) {
 
 function generateDeployableVersionString(branch, version, runNumber) {
     if (branch === 'main' || branch === 'master') {
-        return version;
+        return generateFinalVersionName(version, 'dev', runNumber);
     }
 
     if (branch.startsWith('feature')) {
@@ -57,11 +57,7 @@ function generateDeployableVersionString(branch, version, runNumber) {
     }
 
     if (branch.startsWith('release')) {
-        return generateFinalVersionName(version, normalizeBranchName(branch, true), runNumber);
-    }
-
-    if (branch === 'develop') {
-        return generateFinalVersionName(version, 'dev', runNumber);
+        return version;
     }
 
     return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
