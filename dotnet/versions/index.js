@@ -46,16 +46,16 @@ function generateLibraryVersionString(branch, version, runNumber) {
 function generateDeployableVersionString(branch, version, runNumber) {
     if (branch === 'main' || branch === 'master') {
         return generateFinalVersionName(version, 'dev', runNumber);
-    }
-
+    } 
+    
     if (branch.startsWith('feature')) {
         return generateFinalVersionName(version, "demo-" + normalizeBranchName(branch, true), runNumber);
-    }
-
+    } 
+    
     if (branch.startsWith('hotfix')) {
         return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
-    }
-
+    } 
+    
     if (branch.startsWith('release')) {
         return version;
     }

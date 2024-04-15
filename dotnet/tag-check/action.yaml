@@ -1,0 +1,15 @@
+name: "Git Tag Checker"
+description: "Checks if the tag id a valid tag according to the versioning and branching rules"
+inputs:
+  type:
+    description: Can be 'lib' or 'deploy'
+    required: true
+  package-version:
+    description: "Package version"
+    required: true
+outputs:
+  app-version:
+    description: "The app version generated"
+runs:
+  using: "node20"
+  main: "index.js"
