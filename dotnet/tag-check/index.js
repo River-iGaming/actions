@@ -16,7 +16,7 @@ try {
         throw "Branch, package version and version are required";
     }
 
-    const tags = execSync("git ls-remote --tags origin").toString().split("\n").filter(x => x);
+    const tags = execSync("git ls-remote --tags").toString().split("\n").filter(x => x);
     console.log(tags);
 
     const exactVersionTag = tags.find(x => x === `refs/tags/v${version}`);
