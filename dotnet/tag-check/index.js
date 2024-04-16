@@ -12,7 +12,7 @@ try {
     console.log(`Package Version: ${packageVersion}`)
     console.log(`Version: ${version}`)
 
-    if(!(branch && packageVersion && version)) {
+    if (!(branch && packageVersion && version)) {
         throw "Branch, package version and version are required";
     }
 
@@ -29,12 +29,14 @@ try {
     const coreVersionTag = tags.find(x => x.indexOf(`v${packageVersion}`) > -1);
     const lastComment = github.context.payload.commits[0].message;
 
-    if(!isRelease && !coreVersionTag && lastComment.indexOf(`merge release MW-`) === -1) {
-        throw `Version was altered  in a non release branch`;
+    console.log(`Last comment: ${lastComment}`);
+
+    if (!isRelease && !coreVersionTag && lastComment.indexOf(`merge release MW-`) === -1) {
+        throw `Version was altered in a non release branch`;
     }
 
     // core.notice(`App version: ${appVersion}`);
     // core.setOutput("app-version", appVersion);
 } catch (error) {
-    core.setFailed(error.message);
+    core.setFailed(error);
 }
