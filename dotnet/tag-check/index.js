@@ -30,6 +30,7 @@ try {
     const lastComment = github.context.payload.commits[0].message;
 
     console.log(`Last comment: ${lastComment}`);
+    console.log(`Core version tag matched: ${coreVersionTag}`);
 
     if (!isRelease && !coreVersionTag && lastComment.indexOf(`merge release MW-`) === -1) {
         throw `Version was altered in a non release branch`;
