@@ -7,12 +7,20 @@ try {
     const packageVersion = core.getInput("package-version");
     const version = core.getInput("app-version");
     const runNumber = github.context.runNumber;
+
     console.log(`Branch: ${branch}`);
     console.log(`Package Version: ${packageVersion}`)
     console.log(`Version: ${version}`)
 
+    if(!(branch && packageVersion && version)) {
+        throw "Branch, package version and version are required";
+    }
+
     const tags = execSync("git ls-remote --tags origin").toString().split("\n").filter(x => x);
+    console.log(tags);
+
     const exactVersionTag = tags.find(x => x === `refs/tags/v${version}`);
+
     if (exactVersionTag) {
         throw `Tag v${version} already exists`;
     }
