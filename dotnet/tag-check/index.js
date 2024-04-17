@@ -19,7 +19,7 @@ try {
     const tags = execSync("git ls-remote --tags").toString().split("\n").filter(x => x);
     console.log(tags);
 
-    const exactVersionTag = tags.find(x => x === `refs/tags/v${version}`);
+    const exactVersionTag = tags.find(x => x === `refs/tags/${version}`);
 
     if (exactVersionTag) {
         throw `Tag v${version} already exists`;
