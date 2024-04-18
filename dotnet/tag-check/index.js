@@ -28,6 +28,7 @@ try {
     const isRelease = branch.startsWith("release");
     const coreVersionTag = tags.find(x => x.indexOf(packageVersion) > -1);
     const lastComment = github.context.payload.commits[0].message;
+    console.log(github.context.payload.commits);
 
     console.log(`Last comment: ${lastComment}`);
     console.log(`Core version tag matched: ${coreVersionTag}`);
