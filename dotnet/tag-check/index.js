@@ -33,7 +33,7 @@ try {
     console.log(`Last comment: ${lastComment}`);
     console.log(`Core version tag matched: ${coreVersionTag}`);
 
-    if (!isRelease && !coreVersionTag && lastComment.indexOf(`chore(*): merge release/MW-`) === -1) {
+    if (!isRelease && !coreVersionTag && (!lastComment || lastComment.indexOf(`chore(*): merge release/MW-`) === -1)) {
         throw `Version was altered in a non release branch`;
     }
 
