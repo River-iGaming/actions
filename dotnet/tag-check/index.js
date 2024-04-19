@@ -18,8 +18,6 @@ try {
     }
 
     const tags = execSync("git ls-remote --tags").toString().split("\n").filter(x => x).map(x => x.split("\t")[1]);
-    console.log(tags);
-
     const exactVersionTag = tags.find(x => x === `refs/tags/${version}`);
 
     if (exactVersionTag) {
@@ -30,8 +28,6 @@ try {
     const coreVersionTagMatch = tags.find(x => x.indexOf(packageVersion) > -1);
     const lastComment = Object.values(github.context.payload.commits).sort((a, b) => a.timestamp < b.timestamp ? 0 : -1)[0]?.message;
 
-    console.log(Object.values(github.context.payload.commits).sort((a, b) => a.timestamp < b.timestamp ? 0 : -1));
-
     console.log(`Last comment: ${lastComment}`);
     console.log(`Core version tag matched: ${coreVersionTagMatch}`);
 
@@ -40,10 +36,13 @@ try {
         throw `Version was altered in a non release branch`;
     }
 
-    if(isReleaseBranchMerge) {
-        console.log(`Release branch merge detected`);
+    if (isReleaseBranchMerge) {
+        console.log(`Release branch merge detected. Checking for valid version...`);
 
-        if(exactVersionTag && semver.gt(version, exactVersionTag.replace("refs/tags/", ""))) {
+        const semVersion = semver.parse(version);
+        const semExactVersion = semver.parse(exactVersionTag.replace("refs/tags/", ""));
+
+        if (semVersion.minor <= semExactVersion.minor || semver.gt(version, semVersion.toString())) {
             throw `Version is smaller than the previous version`;
         }
     }
