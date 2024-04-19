@@ -24,7 +24,7 @@ try {
     core.notice(`App version: ${appVersion}`);
     core.setOutput("app-version", appVersion);
 } catch (error) {
-    core.setFailed(error.message);
+    core.setFailed(error);
 }
 
 function generateLibraryVersionString(branch, version, runNumber) {
