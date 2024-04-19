@@ -25,15 +25,15 @@ try {
         throw `Tag v${version} already exists`;
     }
 
-    const isRelease = branch.startsWith("release");
-    const coreVersionTag = tags.find(x => x.indexOf(packageVersion) > -1);
+    const isReleaseBranch  = branch.startsWith("release");
+    const coreVersionTagMatch = tags.find(x => x.indexOf(packageVersion) > -1);
     const lastComment = Object.values(github.context.payload.commits).sort((a, b) => a.timestamp < b.timestamp ? 0 : -1)[0].message;
     console.log(Object.values(github.context.payload.commits).sort((a, b) => a.timestamp < b.timestamp ? 0 : -1));
 
     console.log(`Last comment: ${lastComment}`);
-    console.log(`Core version tag matched: ${coreVersionTag}`);
+    console.log(`Core version tag matched: ${coreVersionTagMatch}`);
 
-    if (!isRelease && !coreVersionTag && (!lastComment || lastComment.indexOf(`chore(*): merge release/MW-`) === -1)) {
+    if (!isReleaseBranch && !coreVersionTagMatch && lastComment?.indexOf(`chore(*): merge release/MW-`) === -1) {
         throw `Version was altered in a non release branch`;
     }
 
