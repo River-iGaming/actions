@@ -27,7 +27,7 @@ try {
 
     const isReleaseBranch  = branch.startsWith("release");
     const coreVersionTagMatch = tags.find(x => x.indexOf(packageVersion) > -1);
-    const lastComment = Object.values(github.context.payload.commits).sort((a, b) => a.timestamp < b.timestamp ? 0 : -1)[0].message;
+    const lastComment = Object.values(github.context.payload.commits).sort((a, b) => a.timestamp < b.timestamp ? 0 : -1)[0]?.message;
     console.log(Object.values(github.context.payload.commits).sort((a, b) => a.timestamp < b.timestamp ? 0 : -1));
 
     console.log(`Last comment: ${lastComment}`);
