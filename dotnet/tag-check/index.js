@@ -40,7 +40,7 @@ try {
         console.log(`Release branch merge detected. Checking for valid version...`);
 
         const semVersion = semver.parse(version);
-        const semExactVersion = semver.parse(tags[0]);
+        const semExactVersion = semver.parse(tags[tags.length - 1].replace("refs/tags/", ""));
 
         console.log(tags);
 
