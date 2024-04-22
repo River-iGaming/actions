@@ -40,7 +40,9 @@ try {
         console.log(`Release branch merge detected. Checking for valid version...`);
 
         const semVersion = semver.parse(version);
-        const semExactVersion = semver.parse(exactVersionTag.replace("refs/tags/", ""));
+        const semExactVersion = semver.parse(tags[0]);
+
+        console.log(tags);
 
         if (semVersion.minor <= semExactVersion.minor || semver.gt(version, semVersion.toString())) {
             throw `Version is smaller than the previous version`;
