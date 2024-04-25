@@ -52,6 +52,10 @@ function generateDeployableVersionString(branch, version, runNumber) {
         return generateFinalVersionName(version, "demo-" + normalizeBranchName(branch, true), runNumber);
     }
 
+    if (branch.startsWith('preview')) {
+        return generateFinalVersionName(version, "preview-" + normalizeBranchName(branch, true), runNumber);
+    }
+
     if (branch.startsWith('hotfix')) {
         return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
     }
