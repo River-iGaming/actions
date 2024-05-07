@@ -31,7 +31,7 @@ try {
     console.log(`Last comment: ${lastComment}`);
     console.log(`Core version tag matched: ${coreVersionTagMatch}`);
 
-    const isReleaseBranchMerge = checkReleaseBranchMerge(lastComment, branch);
+    const isReleaseBranchMerge = checkReleaseBranchMerge(lastComment);
     if (isVersionAlteredInNonReleaseBranch(isReleaseBranch, coreVersionTagMatch) && !isReleaseBranchMerge) {
         throw `Version was altered in a non release branch`;
     }
@@ -56,6 +56,15 @@ function isVersionAlteredInNonReleaseBranch(isReleaseBranch, coreVersionTagMatch
     return !isReleaseBranch && !coreVersionTagMatch;
 }
 
-function checkReleaseBranchMerge(lastComment, branch) {
-    return branch.indexOf("merge/") > -1 || lastComment?.indexOf(`chore(*): merge release/MW-`) > -1;
+function checkReleaseBranchMerge(lastComment) {
+    const isLastCommentMerge = lastComment?.indexOf(`chore(*): merge release/MW-`) > -1;
+
+    const pullRequest = github.context.payload.pull_request;
+    if(!pullRequest){
+        return isLastCommentMerge;
+    }    
+
+    const isMerge = pullRequest.merged;
+    const branchName = pullRequest.head.ref;
+    return isLastCommentMerge || (isMerge && branchName.startsWith("merge/"));   
 }
