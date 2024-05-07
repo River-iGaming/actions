@@ -40,11 +40,10 @@ try {
         console.log(`Release branch merge detected. Checking for valid version...`);
 
         const semVersion = semver.parse(version);
-        const semExactVersion = semver.parse(tags[tags.length - 1].replace("refs/tags/", ""));
+        const lastVersionTag = tags[tags.length - 1].replace("refs/tags/", "")
+        const lastVersionFromTags = semver.parse(lastVersionTag);
 
-        console.log(tags);
-
-        if (semVersion.minor <= semExactVersion.minor || semver.gt(version, semVersion.toString())) {
+        if (semVersion.minor <= lastVersionFromTags.minor || semver.gt(lastVersionFromTags, semVersion)) {
             throw `Version is smaller than the previous version`;
         }
     }
@@ -57,6 +56,6 @@ function isVersionAlteredInNonReleaseBranch(isReleaseBranch, coreVersionTagMatch
     return !isReleaseBranch && !coreVersionTagMatch;
 }
 
-function checkReleaseBranchMerge(lastComment) {
-    return lastComment?.indexOf(`chore(*): merge release/MW-`) > -1;
+function checkReleaseBranchMerge(lastComment, branch) {
+    return branch.indexOf("merge/") > -1 || lastComment?.indexOf(`chore(*): merge release/MW-`) > -1;
 }
