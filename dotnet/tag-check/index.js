@@ -31,7 +31,7 @@ try {
     console.log(`Last comment: ${lastComment}`);
     console.log(`Core version tag matched: ${coreVersionTagMatch}`);
 
-    const isReleaseBranchMerge = checkReleaseBranchMerge(lastComment);
+    const isReleaseBranchMerge = checkReleaseBranchMerge(lastComment, branch);
     if (isVersionAlteredInNonReleaseBranch(isReleaseBranch, coreVersionTagMatch) && !isReleaseBranchMerge) {
         throw `Version was altered in a non release branch`;
     }
