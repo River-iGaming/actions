@@ -65,7 +65,7 @@ function checkReleaseBranchMerge(lastComment) {
     }
 
     console.log("Pull request merge detected:");
-    console.log(pullRequest);
+    // console.log(pullRequest);
 
     const isMerge = pullRequest.merged;
     const incomingBranchName = pullRequest.head.ref;
