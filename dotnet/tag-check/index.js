@@ -62,9 +62,11 @@ function checkReleaseBranchMerge(lastComment) {
     const pullRequest = github.context.payload.pull_request;
     if(!pullRequest){
         return isLastCommentMerge;
-    }    
+    }
+
+    console.log(`Pull request merge detected:\n${pullRequest}`);
 
     const isMerge = pullRequest.merged;
-    const branchName = pullRequest.head.ref;
-    return isLastCommentMerge || (isMerge && branchName.startsWith("merge/"));   
+    const incomingBranchName = pullRequest.head.ref;
+    return isLastCommentMerge || (isMerge && incomingBranchName.startsWith("merge/"));   
 }
