@@ -64,7 +64,7 @@ function checkReleaseBranchMerge(lastComment, branch) {
     //     return isLastCommentMerge || branch.startsWith("merge/");
     // }    
 
-    console.log(`Merge detected:\n${github.context.payload.commits[0]}`);
+    console.log(`Merge detected:\n${JSON.stringify(github.context.payload.commits[0])}`);
 
     const mergeCommits = github.context.payload.commits[0]?.incomingBranchName;
     if(!mergeCommits){
