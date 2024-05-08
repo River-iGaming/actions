@@ -65,7 +65,7 @@ function checkReleaseBranchMerge(lastComment, branch) {
     // }    
 
     const mergeCommits = execSync("git ls-remote --tags")
-    console.log(`Merge detected:\n${JSON.stringify(github.context.payload.commits[0])}`);
+    console.log(`Merge detected:\n${JSON.stringify(mergeCommits)}`);
     if(!mergeCommits){
         return isLastCommentMerge || branch.startsWith("merge/");
     }
