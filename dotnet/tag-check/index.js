@@ -62,14 +62,14 @@ function checkReleaseBranchMerge(lastComment, branch) {
     // const pullRequest = github.context.payload.pull_request;
     // if(!pullRequest){
     //     return isLastCommentMerge || branch.startsWith("merge/");
-    // }
+    // }    
+
+    console.log(`Merge detected:\n${github.context.payload.commits[0]}`);
 
     const mergeCommits = github.context.payload.commits[0]?.incomingBranchName;
     if(!mergeCommits){
         return isLastCommentMerge || branch.startsWith("merge/");
     }
-
-    console.log(`Merge detected:\n${mergeCommits}`);
 
     const isMerge = pullRequest.merged;
     const incomingBranchName = pullRequest.head.ref.replace("refs/heads/", "");
