@@ -58,19 +58,5 @@ function isVersionAlteredInNonReleaseBranch(isReleaseBranch, coreVersionTagMatch
 
 function checkReleaseBranchMerge(lastComment, branch) {
     const isLastCommentMerge = lastComment?.indexOf(`chore(*): merge release/MW-`) > -1;
-
-    // const pullRequest = github.context.payload.pull_request;
-    // if(!pullRequest){
-    //     return isLastCommentMerge || branch.startsWith("merge/");
-    // }    
-
-    const mergeCommits = execSync("git rev-list --merges HEAD").toString();
-    console.log(`Merge detected:\n${mergeCommits}`);
-    if(!mergeCommits){
-        return isLastCommentMerge || branch.startsWith("merge/");
-    }
-
-    const isMerge = pullRequest.merged;
-    const incomingBranchName = pullRequest.head.ref.replace("refs/heads/", "");
-    return isLastCommentMerge || (isMerge && incomingBranchName.startsWith("merge/"));   
+    return isLastCommentMerge || branch.startsWith("merge/");
 }
