@@ -10,12 +10,13 @@ try {
     console.log(`Version: ${version}`)
     let appVersion;
 
+    // switch is really redundant here, but it's a leaving it here in case we need to separate logic
     switch (type) {
         case 'lib':
-            appVersion = generateLibraryVersionString(branch, version, runNumber);
+            appVersion = generateVersionString(branch, version, runNumber);
             break;
         case 'deploy':
-            appVersion = generateDeployableVersionString(branch, version, runNumber);
+            appVersion = generateVersionString(branch, version, runNumber);
             break;
         default:
             throw `'${type}' is not a valid type for this action`;
@@ -27,23 +28,7 @@ try {
     core.setFailed(error);
 }
 
-function generateLibraryVersionString(branch, version, runNumber) {
-    if (branch && branch.startsWith('release')) {
-        return generateFinalVersionName(version, normalizeBranchName(branch, true), runNumber);
-    }
-
-    switch (branch) {
-        case 'main':
-        case 'master':
-            return version;
-        case 'develop':
-            return generateFinalVersionName(version, 'dev', runNumber);
-        default:
-            return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
-    }
-}
-
-function generateDeployableVersionString(branch, version, runNumber) {
+function generateVersionString(branch, version, runNumber) {
     if (branch === 'main' || branch === 'master') {
         return generateFinalVersionName(version, 'dev', runNumber);
     } 
