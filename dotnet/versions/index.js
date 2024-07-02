@@ -29,7 +29,7 @@ try {
 }
 
 function generateVersionString(branch, version, runNumber) {
-    if (branch === 'main' || branch === 'master') {
+    if (branch === 'main' || branch === 'master' || branch === 'master-testing') {
         return generateFinalVersionName(version, 'dev', runNumber);
     } 
     
