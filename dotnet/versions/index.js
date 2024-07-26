@@ -10,7 +10,7 @@ try {
     console.log(`Version: ${version}`)
     let appVersion;
 
-    // switch is really redundant here, but it's a leaving it here in case we need to separate logic
+    // switch is really redundant here, but leaving it here in case we need to separate logic
     switch (type) {
         case 'lib':
             appVersion = generateVersionString(branch, version, runNumber);

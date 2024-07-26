@@ -14,7 +14,7 @@ try {
     console.log(`Version: ${version}`)
 
     if (!(branch && packageVersion && version)) {
-        throw "Branch, package version and version are required";
+        throw "`branch`, `packageVersion` and `version` are required";
     }
 
     const tags = execSync("git ls-remote --tags").toString().split("\n").filter(x => x).map(x => x.split("\t")[1]);
@@ -43,7 +43,11 @@ try {
         const lastVersionTag = tags[tags.length - 1].replace("refs/tags/", "")
         const lastVersionFromTags = semver.parse(lastVersionTag);
 
-        if (semVersion.minor <= lastVersionFromTags.minor || semver.gt(lastVersionFromTags, semVersion)) {
+        // if (semVersion.minor <= lastVersionFromTags.minor || semver.gt(lastVersionFromTags, semVersion)) {
+        //     throw `Version is smaller than the previous version`;
+        // }
+
+        if (semver.gt(lastVersionFromTags, semVersion)) {
             throw `Version is smaller than the previous version`;
         }
     }
