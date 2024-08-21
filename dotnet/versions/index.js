@@ -5,9 +5,6 @@ try {
 	const version = core.getInput("package-version", { required: true });
 	const type = core.getInput("type", { required: true });
 
-	console.log(`github.context.ref ${github.context.ref}`);
-	console.log(`github.context.payload.pull_request.head.ref ${github.context.payload.pull_request.head.ref}`);
-
 	const branch =
 		github.context.eventName === "pull_request"
 			? github.context.payload.pull_request.head.ref
