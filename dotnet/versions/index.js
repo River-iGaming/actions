@@ -14,8 +14,11 @@ try {
 		case "lib":
 			appVersion = generateLibraryVersionString(branch, version, runNumber);
 			break;
-		case "mw-app":
+		case "dotnet-app":
 		case "deploy": // todo: deprecate remove
+			if (type === "deploy") {
+				core.warning("The 'deploy' type is deprecated. Please use 'dotnet-app' instead.");
+			}
 			appVersion = generateMwAppVersionString(branch, version, runNumber);
 			break;
 		case "fe-app":

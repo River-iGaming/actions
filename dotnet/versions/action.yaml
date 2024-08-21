@@ -2,7 +2,7 @@ name: "Version Branch Generator"
 description: "Generates the version based on the branch name"
 inputs:
   type:
-    description: Can be 'lib' or 'mw-app' or 'fe-app'
+    description: Can be 'lib' or 'dotnet-app' or 'fe-app'
     required: true
   package-version:
     description: "Package version"
