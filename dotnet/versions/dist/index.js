@@ -31101,30 +31101,34 @@ try {
 	const type = core.getInput("type");
 	console.log(`Branch ${branch}`);
 	console.log(`Version: ${version}`);
-	console.log(`RunId: ${github.context.runId}`);
-	console.log(`RunAttempt: ${github.context.runAttempt}`);
-	console.log(`RunAttempt2: ${parseInt(process.env.GITHUB_RUN_ATTEMPT, 10)}`);
 	let appVersion;
 
 	switch (type) {
 		case "lib":
 			appVersion = generateLibraryVersionString(branch, version, runNumber);
 			break;
-		case "mw-app":
+		case "dotnet-app":
 		case "deploy": // todo: deprecate remove
+			if (type === "deploy") {
+				core.warning("The 'deploy' type is deprecated. Please use 'dotnet-app' instead.");
+			}
 			appVersion = generateMwAppVersionString(branch, version, runNumber);
 			break;
 		case "fe-app":
 			appVersion = generateFeAppVersionString(branch, version, runNumber);
 			break;
 		default:
-			throw Error(`'${type}' is not a valid type for this action`);
+			throw Error(`'${type}' is not a valid type for this action.`);
 	}
 
 	core.notice(`App version: ${appVersion}`);
 	core.setOutput("app-version", appVersion);
 } catch (error) {
-	core.setFailed(error.message);
+	if (error instanceof Error) {
+		core.setFailed(error.message);
+	} else {
+		core.setFailed(`An unexpected error occurred. Error: ${error}`);
+	}
 }
 
 function generateLibraryVersionString(branch, version, runNumber) {

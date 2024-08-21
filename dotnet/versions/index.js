@@ -25,7 +25,7 @@ try {
 			appVersion = generateFeAppVersionString(branch, version, runNumber);
 			break;
 		default:
-			throw Error(`'${type}' is not a valid type for this action`);
+			throw Error(`'${type}' is not a valid type for this action.`);
 	}
 
 	core.notice(`App version: ${appVersion}`);
