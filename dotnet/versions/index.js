@@ -8,8 +8,8 @@ try {
 	const type = core.getInput("type");
 	console.log(`Branch ${branch}`);
 	console.log(`Version: ${version}`);
-	// console.log(`RunId: ${github.context.runId}`);
-	// console.log(`RunAttempt: ${github.context.runAttempt}`);
+	console.log(`RunId: ${github.context.runId}`);
+	console.log(`RunAttempt: ${github.context.runAttempt}`);
 	let appVersion;
 
 	switch (type) {
