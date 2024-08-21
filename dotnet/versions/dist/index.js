@@ -31095,38 +31095,51 @@ const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
 
 try {
-	const branch = github.context.ref.replace("refs/heads/", "");
-	const version = core.getInput("package-version");
+	const version = core.getInput("package-version", { required: true });
+	const type = core.getInput("type", { required: true });
+
+	const branch =
+		github.context.eventName === "pull_request"
+			? github.context.payload.pull_request.head.ref
+			: github.context.ref.replace("refs/heads/", "");
 	const runNumber = github.context.runNumber;
-	const type = core.getInput("type");
+
 	console.log(`Branch ${branch}`);
 	console.log(`Version: ${version}`);
-	let appVersion;
+	let buildVersion;
 
 	switch (type) {
 		case "lib":
-			appVersion = generateLibraryVersionString(branch, version, runNumber);
+			buildVersion = generateLibraryVersionString(branch, version, runNumber);
 			break;
 		case "deploy":
-			appVersion = generateDeployableVersionString(branch, version, runNumber);
+			buildVersion = generateDeployableVersionString(branch, version, runNumber);
 			break;
 		default:
-			throw `'${type}' is not a valid type for this action`;
+			throw Error(`'${type}' is not a valid type for this action.`);
 	}
 
-	core.notice(`App version: ${appVersion}`);
-	core.setOutput("app-version", appVersion);
+	const versionSegments = buildVersion.split(".");
+	const [major, minor, patch] = versionSegments;
+
+	core.notice(`Version: ${buildVersion}`);
+	core.setOutput("version", buildVersion);
+	core.setOutput("major-version", major);
+	core.setOutput("minor-version", minor);
+	core.setOutput("patch-version", patch);
+	core.setOutput("branch-name", branch);
+	core.setOutput("app-version", buildVersion); // todo: deprecated remove
 } catch (error) {
-	core.setFailed(error.message);
+	if (error instanceof Error) {
+		core.setFailed(error.message);
+	} else {
+		core.setFailed(`An unexpected error occurred. Error: ${error}`);
+	}
 }
 
 function generateLibraryVersionString(branch, version, runNumber) {
 	if (branch && branch.startsWith("release")) {
-		return generateFinalVersionName(
-			version,
-			normalizeBranchName(branch, true),
-			runNumber,
-		);
+		return generateFinalVersionName(version, normalizeBranchName(branch, true), runNumber);
 	}
 
 	switch (branch) {
@@ -31136,11 +31149,7 @@ function generateLibraryVersionString(branch, version, runNumber) {
 		case "develop":
 			return generateFinalVersionName(version, "dev", runNumber);
 		default:
-			return generateFinalVersionName(
-				version,
-				normalizeBranchName(branch, false),
-				runNumber,
-			);
+			return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
 	}
 }
 
@@ -31150,38 +31159,22 @@ function generateDeployableVersionString(branch, version, runNumber) {
 	}
 
 	if (branch.startsWith("feature")) {
-		return generateFinalVersionName(
-			version,
-			"demo-" + normalizeBranchName(branch, true),
-			runNumber,
-		);
+		return generateFinalVersionName(version, "demo-" + normalizeBranchName(branch, true), runNumber);
 	}
 
 	if (branch.startsWith("hotfix")) {
-		return generateFinalVersionName(
-			version,
-			normalizeBranchName(branch, false),
-			runNumber,
-		);
+		return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
 	}
 
 	if (branch.startsWith("release")) {
-		return generateFinalVersionName(
-			version,
-			normalizeBranchName(branch, true),
-			runNumber,
-		);
+		return generateFinalVersionName(version, normalizeBranchName(branch, true), runNumber);
 	}
 
 	if (branch === "develop") {
 		return generateFinalVersionName(version, "dev", runNumber);
 	}
 
-	return generateFinalVersionName(
-		version,
-		normalizeBranchName(branch, false),
-		runNumber,
-	);
+	return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
 }
 
 function generateFinalVersionName(version, descriptor, runNumber) {
@@ -31192,7 +31185,7 @@ function normalizeBranchName(branchName, trimPrefix) {
 	if (trimPrefix) {
 		branchName = branchName.substring(branchName.indexOf("/") + 1);
 	}
-	return branchName.replace("/", "-").toLowerCase();
+	return branchName.replaceAll("/", "-").toLowerCase();
 }
 
 })();
