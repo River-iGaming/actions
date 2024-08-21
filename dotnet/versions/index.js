@@ -25,7 +25,6 @@ try {
 			appVersion = generateFeAppVersionString(branch, version, runNumber);
 			break;
 		default:
-			core.error(`'${type}' is not a valid type for this action`);
 			throw Error(`'${type}' is not a valid type for this action`);
 	}
 
