@@ -3,9 +3,9 @@ const github = require("@actions/github");
 
 try {
 	const branch = github.context.ref.replace("refs/heads/", "");
-	const version = core.getInput("package-version");
+	const version = core.getInput("package-version", { required: true });
 	const runNumber = github.context.runNumber;
-	const type = core.getInput("type");
+	const type = core.getInput("type", { required: true });
 	console.log(`Branch ${branch}`);
 	console.log(`Version: ${version}`);
 	let appVersion;
