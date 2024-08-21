@@ -18,6 +18,8 @@ outputs:
     description: "Returns the minor version e.g. '5'"
   patch-version:
     description: "Returns the patch version e.g. '6'"
+  branch-name:
+    description: "Returns the branch name e.g. 'feature/odin-1234' (for both PR and push events)"
 
 runs:
   using: "node20"
