@@ -4,7 +4,14 @@ const github = require("@actions/github");
 try {
 	const version = core.getInput("package-version", { required: true });
 	const type = core.getInput("type", { required: true });
-	const branch = github.context.ref.replace("refs/heads/", "");
+
+	console.log(`github.context.ref ${github.context.ref}`);
+	console.log(`github.context.payload.pull_request.head.ref ${github.context.payload.pull_request.head.ref}`);
+
+	const branch =
+		github.context.eventName === "pull_request"
+			? github.context.payload.pull_request.head.ref.replace("refs/heads/", "")
+			: github.context.ref.replace("refs/heads/", "");
 	const runNumber = github.context.runNumber;
 
 	console.log(`Branch ${branch}`);
