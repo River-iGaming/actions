@@ -31095,10 +31095,11 @@ const core = __nccwpck_require__(2186);
 const github = __nccwpck_require__(5438);
 
 try {
-	const branch = github.context.ref.replace("refs/heads/", "");
 	const version = core.getInput("package-version", { required: true });
-	const runNumber = github.context.runNumber;
 	const type = core.getInput("type", { required: true });
+	const branch = github.context.ref.replace("refs/heads/", "");
+	const runNumber = github.context.runNumber;
+
 	console.log(`Branch ${branch}`);
 	console.log(`Version: ${version}`);
 	let appVersion;
