@@ -10,6 +10,7 @@ try {
 	console.log(`Version: ${version}`);
 	console.log(`RunId: ${github.context.runId}`);
 	console.log(`RunAttempt: ${github.context.runAttempt}`);
+	console.log(`RunAttempt2: ${parseInt(process.env.GITHUB_RUN_ATTEMPT, 10)}`);
 	let appVersion;
 
 	switch (type) {
