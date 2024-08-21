@@ -10,7 +10,7 @@ try {
 
 	const branch =
 		github.context.eventName === "pull_request"
-			? github.context.payload.pull_request.head.ref.replace("refs/heads/", "")
+			? github.context.payload.pull_request.head.ref
 			: github.context.ref.replace("refs/heads/", "");
 	const runNumber = github.context.runNumber;
 
@@ -44,6 +44,7 @@ try {
 	core.setOutput("major-version", major);
 	core.setOutput("minor-version", minor);
 	core.setOutput("patch-version", patch);
+	core.setOutput("branch-name", branch);
 	core.setOutput("app-version", buildVersion); // todo: deprecated remove
 } catch (error) {
 	if (error instanceof Error) {
