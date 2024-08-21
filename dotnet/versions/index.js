@@ -9,28 +9,35 @@ try {
 
 	console.log(`Branch ${branch}`);
 	console.log(`Version: ${version}`);
-	let appVersion;
+	let buildVersion;
 
 	switch (type) {
 		case "lib":
-			appVersion = generateLibraryVersionString(branch, version, runNumber);
+			buildVersion = generateLibraryVersionString(branch, version, runNumber);
 			break;
 		case "dotnet-app":
 		case "deploy": // todo: deprecate remove
 			if (type === "deploy") {
 				core.warning("The 'deploy' type is deprecated. Please use 'dotnet-app' instead.");
 			}
-			appVersion = generateMwAppVersionString(branch, version, runNumber);
+			buildVersion = generateMwAppVersionString(branch, version, runNumber);
 			break;
 		case "fe-app":
-			appVersion = generateFeAppVersionString(branch, version, runNumber);
+			buildVersion = generateFeAppVersionString(branch, version, runNumber);
 			break;
 		default:
 			throw Error(`'${type}' is not a valid type for this action.`);
 	}
 
-	core.notice(`App version: ${appVersion}`);
-	core.setOutput("app-version", appVersion);
+	const versionSegments = buildVersion.split(".");
+	const [major, minor, patch] = versionSegments;
+
+	core.notice(`Version: ${buildVersion}`);
+	core.setOutput("version", buildVersion);
+	core.setOutput("major-version", major);
+	core.setOutput("minor-version", minor);
+	core.setOutput("patch-version", patch);
+	core.setOutput("app-version", buildVersion); // todo: deprecated remove
 } catch (error) {
 	if (error instanceof Error) {
 		core.setFailed(error.message);
