@@ -31,7 +31,11 @@ try {
 	core.notice(`App version: ${appVersion}`);
 	core.setOutput("app-version", appVersion);
 } catch (error) {
-	core.setFailed(error.message);
+	if (error instanceof Error) {
+		core.setFailed(error.message);
+	} else {
+		core.setFailed(`An unexpected error occurred. Error: ${error}`);
+	}
 }
 
 function generateLibraryVersionString(branch, version, runNumber) {
