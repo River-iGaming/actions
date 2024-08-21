@@ -8,14 +8,20 @@ try {
 	const type = core.getInput("type");
 	console.log(`Branch ${branch}`);
 	console.log(`Version: ${version}`);
+	console.log(`RunId: ${github.context.runId}`);
+	console.log(`RunAttempt: ${github.context.runAttempt}`);
 	let appVersion;
 
 	switch (type) {
 		case "lib":
 			appVersion = generateLibraryVersionString(branch, version, runNumber);
 			break;
-		case "deploy":
-			appVersion = generateDeployableVersionString(branch, version, runNumber);
+		case "mw-app":
+		case "deploy": // todo: deprecate remove
+			appVersion = generateMwAppVersionString(branch, version, runNumber);
+			break;
+		case "fe-app":
+			appVersion = generateFeAppVersionString(branch, version, runNumber);
 			break;
 		default:
 			throw `'${type}' is not a valid type for this action`;
@@ -43,9 +49,17 @@ function generateLibraryVersionString(branch, version, runNumber) {
 	}
 }
 
-function generateDeployableVersionString(branch, version, runNumber) {
+function generateMwAppVersionString(branch, version, runNumber) {
 	if (branch === "main" || branch === "master") {
 		return version;
+	}
+
+	if (branch === "develop") {
+		return generateFinalVersionName(version, "dev", runNumber);
+	}
+
+	if (branch === "vnext") {
+		return generateFinalVersionName(version, "vnext", runNumber);
 	}
 
 	if (branch.startsWith("feature")) {
@@ -60,11 +74,35 @@ function generateDeployableVersionString(branch, version, runNumber) {
 		return generateFinalVersionName(version, normalizeBranchName(branch, true), runNumber);
 	}
 
+	return generateFinalVersionName(version, "demo-" + normalizeBranchName(branch, true), runNumber);
+}
+
+function generateFeAppVersionString(branch, version, runNumber) {
+	if (branch === "main" || branch === "master") {
+		return version;
+	}
+
 	if (branch === "develop") {
 		return generateFinalVersionName(version, "dev", runNumber);
 	}
 
-	return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
+	if (branch === "vnext") {
+		return generateFinalVersionName(version, "vnext", runNumber);
+	}
+
+	if (branch.startsWith("feature")) {
+		return generateFinalVersionName(version, "demo-" + normalizeBranchName(branch, true), runNumber);
+	}
+
+	if (branch.startsWith("hotfix")) {
+		return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
+	}
+
+	if (branch.startsWith("release")) {
+		return generateFinalVersionName(version, "release", runNumber);
+	}
+
+	return generateFinalVersionName(version, "demo-" + normalizeBranchName(branch, true), runNumber);
 }
 
 function generateFinalVersionName(version, descriptor, runNumber) {
