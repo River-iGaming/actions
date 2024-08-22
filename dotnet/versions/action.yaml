@@ -3,7 +3,7 @@ description: "Generates the version based on the branch name"
 
 inputs:
   type:
-    description: Can be 'lib' or 'deploy'
+    description: Can be 'lib' or 'dotnet-app' or 'fe-app'
     required: true
   package-version:
     description: "Package version"
