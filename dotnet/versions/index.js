@@ -15,13 +15,19 @@ try {
 	console.log(`Version: ${version}`);
 	let buildVersion;
 
-	// switch is really redundant here, but leaving it here in case we need to separate logic
 	switch (type) {
 		case "lib":
 			buildVersion = generateVersionString(branch, version, runNumber);
 			break;
-		case "deploy":
+		case "dotnet-app":
+		case "deploy": // todo: deprecate remove
+			if (type === "deploy") {
+				core.warning("The 'deploy' type is deprecated. Please use 'dotnet-app' instead.");
+			}
 			buildVersion = generateVersionString(branch, version, runNumber);
+			break;
+		case "fe-app":
+			buildVersion = generateFeAppVersionString(branch, version, runNumber);
 			break;
 		default:
 			throw Error(`'${type}' is not a valid type for this action.`);
@@ -63,6 +69,34 @@ function generateVersionString(branch, version, runNumber) {
 	}
 
 	return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
+}
+
+function generateFeAppVersionString(branch, version, runNumber) {
+	if (branch === "main" || branch === "master") {
+		return version;
+	}
+
+	if (branch === "develop") {
+		return generateFinalVersionName(version, "dev", runNumber);
+	}
+
+	if (branch === "vnext") {
+		return generateFinalVersionName(version, "vnext", runNumber);
+	}
+
+	if (branch.startsWith("feature")) {
+		return generateFinalVersionName(version, "demo-" + normalizeBranchName(branch, true), runNumber);
+	}
+
+	if (branch.startsWith("hotfix")) {
+		return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
+	}
+
+	if (branch.startsWith("release")) {
+		return generateFinalVersionName(version, "release", runNumber);
+	}
+
+	return generateFinalVersionName(version, "demo-" + normalizeBranchName(branch, true), runNumber);
 }
 
 function generateFinalVersionName(version, descriptor, runNumber) {
