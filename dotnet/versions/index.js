@@ -17,8 +17,6 @@ try {
 
 	switch (type) {
 		case "lib":
-			buildVersion = generateVersionString(branch, version, runNumber);
-			break;
 		case "dotnet-app":
 		case "deploy": // todo: deprecate remove
 			if (type === "deploy") {
