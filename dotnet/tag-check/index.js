@@ -28,6 +28,8 @@ try {
 		throw `Tag v${version} already exists`;
 	}
 
+	console.log(`Tags: ${tags}`);
+
 	const isReleaseBranch = branch.startsWith("release");
 	const coreVersionTagMatch = tags.find(x => x.indexOf(packageVersion) > -1);
 	const lastComment = Object.values(github.context.payload.commits).sort((a, b) =>
