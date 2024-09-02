@@ -45,7 +45,7 @@ try {
 	if (isReleaseBranchMerge) {
 		console.log(`Release branch merge detected. Checking for valid version...`);
 
-		console.log("I'm here... ", version, lastVersionTag);
+		console.log("I'm here 1... " + version + " " + lastVersionTag);
 
 		const semVersion = semver.parse(version);
 		const lastVersionTag = tags[tags.length - 1].replace("refs/tags/", "");
