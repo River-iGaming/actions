@@ -12,6 +12,7 @@ try {
 	console.log(`Branch: ${branch}`);
 	console.log(`Package Version: ${packageVersion}`);
 	console.log(`Version: ${version}`);
+	console.log(`Wtf nigga`);
 
 	if (!(branch && packageVersion && version)) {
 		throw "`branch`, `packageVersion` and `version` are required";
@@ -23,7 +24,7 @@ try {
 		.filter(x => x)
 		.map(x => x.split("\t")[1]);
 
-	console.log(`Tags: ${tags}`);
+		console.log(`Tags: ${tags}`);
 
 	const exactVersionTag = tags.find(x => x === `refs/tags/${version}`);
 	if (exactVersionTag) {
