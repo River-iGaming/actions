@@ -22,8 +22,8 @@ try {
 		.split("\n")
 		.filter(x => x)
 		.map(x => x.split("\t")[1]);
-	const exactVersionTag = tags.find(x => x === `refs/tags/${version}`);
 
+	const exactVersionTag = tags.find(x => x === `refs/tags/${version}`);
 	if (exactVersionTag) {
 		throw `Tag v${version} already exists`;
 	}
@@ -44,6 +44,8 @@ try {
 
 	if (isReleaseBranchMerge) {
 		console.log(`Release branch merge detected. Checking for valid version...`);
+
+		console.log("I'm here... ", version, lastVersionTag);
 
 		const semVersion = semver.parse(version);
 		const lastVersionTag = tags[tags.length - 1].replace("refs/tags/", "");
