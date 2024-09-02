@@ -49,6 +49,8 @@ try {
 		const lastVersionTag = tags[tags.length - 1].replace("refs/tags/", "");
 		const lastVersionFromTags = semver.parse(lastVersionTag);
 
+		console.log("I'm here... ", semVersion, lastVersionFromTags);
+
 		// if (semVersion.minor <= lastVersionFromTags.minor || semver.gt(lastVersionFromTags, semVersion)) {
 		//     throw `Version is smaller than the previous version`;
 		// }
