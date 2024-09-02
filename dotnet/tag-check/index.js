@@ -24,7 +24,7 @@ try {
 		.filter(x => x)
 		.map(x => x.split("\t")[1]);
 
-		console.log(`Tags: ${tags}`);
+	console.log(`Tags: ${tags}`);
 
 	const exactVersionTag = tags.find(x => x === `refs/tags/${version}`);
 	if (exactVersionTag) {
