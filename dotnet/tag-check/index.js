@@ -23,12 +23,12 @@ try {
 		.filter(x => x)
 		.map(x => x.split("\t")[1]);
 
+	console.log(`Tags: ${tags}`);
+
 	const exactVersionTag = tags.find(x => x === `refs/tags/${version}`);
 	if (exactVersionTag) {
 		throw `Tag v${version} already exists`;
 	}
-
-	console.log(`Tags: ${tags}`);
 
 	const isReleaseBranch = branch.startsWith("release");
 	const coreVersionTagMatch = tags.find(x => x.indexOf(packageVersion) > -1);
