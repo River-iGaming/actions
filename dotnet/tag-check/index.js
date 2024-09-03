@@ -57,15 +57,19 @@ try {
 
 		const semVersion = semver.parse(version);
 		const lastVersionTag = tags[tags.length - 1];
-		const lastVersionFromTags = semver.parse(lastVersionTag);
+		// const lastVersionFromTags = semver.parse(lastVersionTag);
 
-		console.log("I'm here... " + semVersion + " " + lastVersionTag + " " + lastVersionFromTags);
+		console.log("I'm here... " + semVersion + " " + lastVersionTag);
 
 		// if (semVersion.minor <= lastVersionFromTags.minor || semver.gt(lastVersionFromTags, semVersion)) {
 		//     throw `Version is smaller than the previous version`;
 		// }
 
-		if (semver.gt(lastVersionFromTags, semVersion)) {
+		// if (semver.gt(lastVersionFromTags, semVersion)) {
+		// 	throw `Version is smaller than the previous version`;
+		// }
+
+		if (semver.gt(lastVersionTag, semVersion)) {
 			throw `Version is smaller than the previous version`;
 		}
 	}
