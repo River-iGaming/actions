@@ -33693,7 +33693,7 @@ try {
 		console.log("I'm here 3... " + tags[tags.length - 1]);
 
 		const semVersion = semver.parse(version);
-		const lastVersionTag = semver.parse(tags[tags.length - 1]);
+		const lastVersionTag = getLastVersionFromTags(tags);
 		// const lastVersionFromTags = semver.parse(lastVersionTag);
 
 		console.log("I'm here... " + semVersion + " " + lastVersionTag);
@@ -33706,7 +33706,7 @@ try {
 		// 	throw `Version is smaller than the previous version`;
 		// }
 
-		if (semver.gt(lastVersionTag, semVersion)) {
+		if (tags.length > 0 && semver.gt(lastVersionTag, semVersion)) {
 			throw `Version is smaller than the previous version`;
 		}
 	}
@@ -33726,6 +33726,19 @@ function checkMergeFromReleaseBranch(lastComment, branch) {
 	console.log("Is last comment merge: ", isLastCommentMerge);
 
 	return isLastCommentMerge || branch.startsWith("merge/");
+}
+
+function getLastVersionFromTags(tags) {
+	let tagFound = "";
+	for (let i = tags.length - 1; i >= 0; i--) {
+		const semvered = semver.parse(tags[i]);
+		if (semvered) {
+			tagFound = semvered;
+			break;
+		}
+	}
+
+	return semver.parse(tagFound);
 }
 
 })();
