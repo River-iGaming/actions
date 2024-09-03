@@ -23,7 +23,7 @@ try {
 		.split("\n")
 		.filter(x => x)
 		.map(x => x.split("\t")[1])
-		.map(x => semver.parse(x.replace("refs/tags/", "")))
+		.map(x => x.replace("refs/tags/", ""))
 		.filter(x => x)
 		;
 
@@ -56,7 +56,7 @@ try {
 		console.log("I'm here 3... " + tags[tags.length - 1]);
 
 		const semVersion = semver.parse(version);
-		const lastVersionTag = tags[tags.length - 1];
+		const lastVersionTag = semver.parse(tags[tags.length - 1]);
 		// const lastVersionFromTags = semver.parse(lastVersionTag);
 
 		console.log("I'm here... " + semVersion + " " + lastVersionTag);
