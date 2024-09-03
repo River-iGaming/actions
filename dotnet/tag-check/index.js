@@ -12,7 +12,6 @@ try {
 	console.log(`Branch: ${branch}`);
 	console.log(`Package Version: ${packageVersion}`);
 	console.log(`Version: ${version}`);
-	console.log(`Wtf nigga`);
 
 	if (!(branch && packageVersion && version)) {
 		throw "`branch`, `packageVersion` and `version` are required";
@@ -26,8 +25,6 @@ try {
 		.map(x => x.replace("refs/tags/", ""))
 		.filter(x => x)
 		;
-
-	console.log(`Tags: ${tags}`);
 
 	const exactVersionTag = tags.find(x => x === `${version}`);
 	if (exactVersionTag) {
@@ -51,23 +48,15 @@ try {
 	if (isReleaseBranchMerge) {
 		console.log(`Release branch merge detected. Checking for valid version...`);
 
-		console.log("I'm here 1... " + version);
-		console.log("I'm here 2... " + tags[0]);
-		console.log("I'm here 3... " + tags[tags.length - 1]);
-
 		const semVersion = semver.parse(version);
 		const lastVersionTag = getLastVersionFromTags(tags);
-		// const lastVersionFromTags = semver.parse(lastVersionTag);
-
-		console.log("I'm here... " + semVersion + " " + lastVersionTag);
 
 		// if (semVersion.minor <= lastVersionFromTags.minor || semver.gt(lastVersionFromTags, semVersion)) {
 		//     throw `Version is smaller than the previous version`;
 		// }
-
-		// if (semver.gt(lastVersionFromTags, semVersion)) {
-		// 	throw `Version is smaller than the previous version`;
-		// }
+		if(tags.length > 0 && !lastVersionTag){
+			throw `No semver version found in tags`;
+		}
 
 		if (tags.length > 0 && semver.gt(lastVersionTag, semVersion)) {
 			throw `Version is smaller than the previous version`;
