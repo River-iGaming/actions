@@ -33659,11 +33659,14 @@ try {
 		.toString()
 		.split("\n")
 		.filter(x => x)
-		.map(x => x.split("\t")[1]);
+		.map(x => x.split("\t")[1])
+		.map(x => semver.parse(x.replace("refs/tags/", "")))
+		.filter(x => x)
+		;
 
 	console.log(`Tags: ${tags}`);
 
-	const exactVersionTag = tags.find(x => x === `refs/tags/${version}`);
+	const exactVersionTag = tags.find(x => x === `${version}`);
 	if (exactVersionTag) {
 		throw `Tag v${version} already exists`;
 	}
@@ -33690,10 +33693,10 @@ try {
 		console.log("I'm here 3... " + tags[tags.length - 1]);
 
 		const semVersion = semver.parse(version);
-		const lastVersionTag = tags[tags.length - 1].replace("refs/tags/", "");
+		const lastVersionTag = tags[tags.length - 1];
 		const lastVersionFromTags = semver.parse(lastVersionTag);
 
-		console.log("I'm here... " + semVersion + " " + " " + lastVersionFromTags);
+		console.log("I'm here... " + semVersion + " " + lastVersionTag + " " + lastVersionFromTags);
 
 		// if (semVersion.minor <= lastVersionFromTags.minor || semver.gt(lastVersionFromTags, semVersion)) {
 		//     throw `Version is smaller than the previous version`;
