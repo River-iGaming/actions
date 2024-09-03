@@ -50,6 +50,7 @@ try {
 
 		console.log("I'm here 1... " + version);
 		console.log("I'm here 2... " + tags[0]);
+		console.log("I'm here 3... " + tags[tags.length - 1]);
 
 		const semVersion = semver.parse(version);
 		const lastVersionTag = tags[tags.length - 1].replace("refs/tags/", "");
