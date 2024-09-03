@@ -81,7 +81,7 @@ function checkMergeFromReleaseBranch(lastComment, branch) {
 }
 
 function getLastVersionFromTags(tags) {
-	let tagFound = "";
+	let tagFound = undefined;
 	for (let i = tags.length - 1; i >= 0; i--) {
 		const semvered = semver.parse(tags[i]);
 		if (semvered) {
@@ -90,5 +90,5 @@ function getLastVersionFromTags(tags) {
 		}
 	}
 
-	return semver.parse(tagFound);
+	return tagFound;
 }
