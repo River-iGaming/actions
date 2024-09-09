@@ -1,0 +1,15 @@
+name: "Down Merge Release"
+description: "Down merge release branch to the master branch while updating the app version to the next release"
+inputs:
+  package-version:
+    description: "Package version"
+    required: true
+  app-version:
+    description: "The final app version"
+    required: true
+outputs:
+  app-version:
+    description: "The app version generated"
+runs:
+  using: "node20"
+  main: "dist/index.js"
