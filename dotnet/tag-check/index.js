@@ -51,6 +51,8 @@ try {
 		const semVersion = semver.parse(version);
 		const lastVersionTag = getLastVersionFromTags(tags);
 
+		console.log(`Last version tag: ${lastVersionTag}`);
+
 		// if (semVersion.minor <= lastVersionFromTags.minor || semver.gt(lastVersionFromTags, semVersion)) {
 		//     throw `Version is smaller than the previous version`;
 		// }
