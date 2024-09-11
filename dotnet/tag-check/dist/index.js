@@ -33697,7 +33697,7 @@ try {
 			throw `No semver version found in tags`;
 		}
 
-		if (tags.length > 0 && lastVersionTag.compareMain(semVersion) == 1){ //semver.gt(lastVersionTag, semVersion)) {
+		if (tags.length > 0 && !lastVersionTag.prerelease && lastVersionTag.compareMain(semVersion) == 1){ //semver.gt(lastVersionTag, semVersion)) {
 			throw `Version is smaller than the previous version`;
 		}
 	}
