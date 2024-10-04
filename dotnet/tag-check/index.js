@@ -37,6 +37,8 @@ try {
 		a.timestamp < b.timestamp ? 0 : -1,
 	)[0]?.message;
 
+	console.log(JSON.parse(github.context.payload.commits[0]));
+
 	console.log(`Last comment: ${lastComment}`);
 	console.log(`Core version tag matched: ${coreVersionTagMatch}`);
 
@@ -53,14 +55,11 @@ try {
 
 		console.log(`Last version tag: ${lastVersionTag}`);
 
-		// if (semVersion.minor <= lastVersionFromTags.minor || semver.gt(lastVersionFromTags, semVersion)) {
-		//     throw `Version is smaller than the previous version`;
-		// }
 		if(tags.length > 0 && !lastVersionTag){
 			throw `No semver version found in tags`;
 		}
 
-		if (tags.length > 0 && lastVersionTag.prerelease.length == 0 && lastVersionTag.compareMain(semVersion) == 1){ //semver.gt(lastVersionTag, semVersion)) {
+		if (tags.length > 0 && lastVersionTag.prerelease.length == 0 && lastVersionTag.compareMain(semVersion) == 1){
 			throw `Version is smaller than the previous version`;
 		}
 	}
