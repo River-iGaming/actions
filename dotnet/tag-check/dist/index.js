@@ -33674,6 +33674,8 @@ try {
 		a.timestamp < b.timestamp ? 0 : -1,
 	)[0]?.message;
 
+	console.log("commit: "+ JSON.parse(github.context.payload.commits[0]));
+
 	console.log(`Last comment: ${lastComment}`);
 	console.log(`Core version tag matched: ${coreVersionTagMatch}`);
 
