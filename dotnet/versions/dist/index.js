@@ -31110,8 +31110,6 @@ try {
 
 	switch (type) {
 		case "lib":
-			buildVersion = generateVersionString(branch, version, runNumber);
-			break;
 		case "dotnet-app":
 		case "deploy": // todo: deprecate remove
 			if (type === "deploy") {
@@ -31145,16 +31143,12 @@ try {
 }
 
 function generateVersionString(branch, version, runNumber) {
-	if (branch === "main" || branch === "master" || branch === "master-testing") {
+	if (["master", "main", "master-testing"].includes(branch)) {
 		return generateFinalVersionName(version, "dev", runNumber);
 	}
 
-	if (branch.startsWith("feature")) {
+	if (branch.startsWith("feature") || branch.startsWith("hotfix")) {
 		return generateFinalVersionName(version, "demo-" + normalizeBranchName(branch, true), runNumber);
-	}
-
-	if (branch.startsWith("hotfix")) {
-		return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
 	}
 
 	if (branch.startsWith("release")) {

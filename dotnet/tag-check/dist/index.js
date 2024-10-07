@@ -33674,7 +33674,7 @@ try {
 		a.timestamp < b.timestamp ? 0 : -1,
 	)[0]?.message;
 
-	console.log("commit: "+ JSON.stringify(github.context.payload));
+	console.log("commit: "+ JSON.stringify(github.context));
 
 	console.log(`Last comment: ${lastComment}`);
 	console.log(`Core version tag matched: ${coreVersionTagMatch}`);
@@ -33710,12 +33710,12 @@ function isVersionAlteredInNonReleaseBranch(isReleaseBranch, coreVersionTagMatch
 
 function checkMergeFromReleaseBranch(lastComment, branch) {
 	const isLastCommentMerge =
-		["chore(*): merge release/MW-", "chore(*): version bump manual intervention"]
+		["chore(*): merge release/MW-", "chore(*): version bump manual intervention", "version bump"]
 			.map(x => lastComment?.indexOf(x) > -1)
 			.filter(x => x).length > 0;
 	console.log("Is last comment merge: ", isLastCommentMerge);
 
-	return isLastCommentMerge || branch.startsWith("merge/");
+	return isLastCommentMerge || branch.startsWith("merge/") || branch.startsWith("hotfix/");
 }
 
 function getLastVersionFromTags(tags) {
