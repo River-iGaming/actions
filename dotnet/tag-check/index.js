@@ -68,7 +68,7 @@ try {
 }
 
 function isVersionAlteredInNonReleaseBranch(isReleaseBranch, coreVersionTagMatch) {
-	return !isReleaseBranch && !coreVersionTagMatch && !github.context.payload.;
+	return !isReleaseBranch && !coreVersionTagMatch && github.context.payload.commits[0].committer.username !== "web-flow";
 }
 
 function checkMergeFromReleaseBranch(lastComment, branch) {
