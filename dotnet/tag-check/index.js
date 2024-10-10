@@ -68,7 +68,7 @@ try {
 }
 
 function isVersionAlteredInNonReleaseBranch(isReleaseBranch, coreVersionTagMatch) {
-	return !isReleaseBranch && !coreVersionTagMatch;
+	return !isReleaseBranch && !coreVersionTagMatch && !github.context.payload.;
 }
 
 function checkMergeFromReleaseBranch(lastComment, branch) {
