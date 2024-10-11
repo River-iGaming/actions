@@ -33598,7 +33598,7 @@ module.exports = parseParams
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"name":"river-dotnet-down-merge-release","version":"3.0.0","description":"","main":"index.js","scripts":{"start":"npm run build -- watch","build":"ncc build index.js","test":"echo \\"Error: no test specified\\" && exit 1"},"author":"","license":"ISC","dependencies":{"@actions/core":"^1.10.0","@actions/github":"^6.0.0","semver":"^7.6.3"},"devDependencies":{"@vercel/ncc":"^0.38.1"}}');
+module.exports = JSON.parse('{"name":"river-dotnet-bump-master-version","version":"3.0.0","description":"","main":"index.js","scripts":{"start":"npm run build -- watch","build":"ncc build index.js","test":"echo \\"Error: no test specified\\" && exit 1"},"author":"","license":"ISC","dependencies":{"@actions/core":"^1.10.0","@actions/github":"^6.0.0","semver":"^7.6.3"},"devDependencies":{"@vercel/ncc":"^0.38.1"}}');
 
 /***/ })
 
@@ -33682,7 +33682,7 @@ try {
 
 	console.log("Committing changes");
 
-	execSync(`git commit -m "chore(*): merge ${branch}"`);
+	execSync(`git commit -m "ci: bump to ${version}"`);
 	execSync("git push origin master");
 } catch (error) {
 	core.setFailed(error);

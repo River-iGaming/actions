@@ -37,7 +37,7 @@ try {
 
 	console.log("Committing changes");
 
-	execSync(`git commit -m "chore(*): merge ${branch}"`);
+	execSync(`git commit -m "ci: bump to ${version}"`);
 	execSync("git push origin master");
 } catch (error) {
 	core.setFailed(error);
