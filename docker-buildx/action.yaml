@@ -54,12 +54,14 @@ runs:
     - name: Generate version
       if: ${{ inputs.version == '' }}
       working-directory: ${{ inputs.path }}
+      shell: bash
       run: |
         VERSION=$(cat package.json | jq ".version" | xargs)
         echo "VERSION=$VERSION" >> $GITHUB_ENV
 
     - name: Use supplied version
       if: ${{ inputs.version != '' }}
+      shell: bash
       run: |
         echo "VERSION=${{ inputs.version }}" >> $GITHUB_ENV
 
