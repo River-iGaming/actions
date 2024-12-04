@@ -1,0 +1,43 @@
+name: 'Build Docker Image'
+description: 'Greet someone'
+inputs:
+  path:  # id of input
+    description: 'Directory containing the Docker and docker-compose files'
+    required: true
+  registry:
+    description: 'Registry URI where to publish the docker images'
+outputs:
+  random-number:
+    description: "Random number"
+    value: ${{ steps.random-number-generator.outputs.random-number }}
+runs:
+  using: "composite"
+  steps:
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@master
+      with:
+        platforms: all
+
+    - name: Setup Docker buildx
+      id: buildx-setup
+      uses: docker/setup-buildx-action@v2
+
+    - name: Inspect builder
+      shell: bash
+      run: |
+        echo "Name:      ${{ steps.buildx-setup.outputs.name }}"
+        echo "Endpoint:  ${{ steps.buildx-setup.outputs.endpoint }}"
+        echo "Status:    ${{ steps.buildx-setup.outputs.status }}"
+        echo "Flags:     ${{ steps.buildx-setup.outputs.flags }}"
+        echo "Platforms: ${{ steps.buildx-setup.outputs.platforms }}"
+
+    - name: Setup yq
+      uses: mikefarah/yq@v4.30.8
+
+    - name: Start Build
+      run: build.sh
+      env:
+        ECR_HOST: ${{ inputs.registry }}
+      working-directory: ${{ inputs.path }}
+      shell: bash
+
