@@ -86,4 +86,7 @@ do
   # Build and push the docker image with the platform and arguments provided
   exe docker buildx build $BUILD_ARGS $PLATFORM_ARGS -t ${IMAGE_TAG} -f ${DOCKER_FILE} --progress plain --push .
   echo "${service} - Build complete"
+
+  # outputs
+  echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
 done

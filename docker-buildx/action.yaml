@@ -7,9 +7,9 @@ inputs:
   registry:
     description: 'Registry URI where to publish the docker images'
 outputs:
-  random-number:
-    description: "Random number"
-    value: ${{ steps.random-number-generator.outputs.random-number }}
+  image-tag:
+    description: 'Tag of image built'
+    value: ${{ steps.build.outputs.image-tag }}
 runs:
   using: "composite"
   steps:
@@ -35,6 +35,7 @@ runs:
       uses: mikefarah/yq@v4.30.8
 
     - name: Start Build
+      id: build
       run: build.sh
       env:
         ECR_HOST: ${{ inputs.registry }}
