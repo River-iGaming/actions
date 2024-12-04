@@ -6,6 +6,16 @@ inputs:
     required: true
   registry:
     description: 'Registry URI where to publish the docker images'
+    required: true
+  tag:
+    description: 'The tag to apply to the docker image'
+    required: false
+    default: ''
+  repository:
+    description: 'Image repository where the built docker image will be uploaded to'
+    default: ''
+    required: false
+
 outputs:
   image-tag:
     description: 'Tag of image built'
@@ -34,6 +44,25 @@ runs:
     - name: Setup yq
       uses: mikefarah/yq@v4.30.8
 
+    - name: Generate version
+      if: ${{ inputs.version == '' }}
+      working-directory: ${{ inputs.path }}
+      run: |
+        VERSION=$(cat package.json | jq ".version" | xargs)
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+    - name: Generate version
+      if: ${{ inputs.version == '' }}
+      working-directory: ${{ inputs.path }}
+      run: |
+        VERSION=$(cat package.json | jq ".version" | xargs)
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+    - name: Use supplied version
+      if: ${{ inputs.version != '' }}
+      run: |
+        echo "VERSION=${{ inputs.version }}" >> $GITHUB_ENV
+
     - name: Start Build
       id: build
       run: |
@@ -54,7 +83,6 @@ runs:
 
         function exe() { echo "\$ $@" ; "$@" ; }
 
-        VERSION=$(cat package.json | jq ".version" | xargs)
         NAME=$(cat package.json | jq ".name" | xargs)
 
         [[ $ECR_HOST =~ ^([0-9]*) ]] && AWS_REGISTRY_ID=${BASH_REMATCH[1]}
@@ -76,11 +104,6 @@ runs:
         DID_BUILD=0
         for service in $SERVICES;
         do
-          if (istagused "$AWS_REGISTRY_ID" "$NAME" "$VERSION"); then
-            echo "::warning::$NAME:$TAG already exists on remote... skipping $service..."
-            continue
-          fi
-
           echo "Building service ${service}"
 
           # Render docker-compose file every iteration, just in case we have diff environment variables
