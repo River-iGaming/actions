@@ -89,7 +89,7 @@ runs:
           cat >docker-compose.yml <<EOL
         services:
           server:
-            image: ${{ inputs.registry }}/${{ inputs.repository }}
+            image: ${{ inputs.registry }}/${{ inputs.repository }}:${TAG}
             build:
               context: .
               dockerfile: Dockerfile
