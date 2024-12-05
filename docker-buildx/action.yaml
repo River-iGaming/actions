@@ -1,7 +1,11 @@
-name: 'Build Docker Image'
-description: 'Greet someone'
+name: 'docker buildx'
+description: |
+  The docker-buildx replaces the use of docker compose when building docker images.
+  The configuration for the build is loaded from 'package.json' as well as docker-compose.yaml.  Multiple services as well as multiple platforms
+  are supported through customization of the docker-compose file.
+
 inputs:
-  path:  # id of input
+  path:
     description: 'Directory containing the Docker and docker-compose files'
     required: true
   registry:
@@ -11,15 +15,12 @@ inputs:
     description: 'The tag to apply to the docker image'
     required: false
     default: ''
-  repository:
-    description: 'Image repository where the built docker image will be uploaded to'
-    default: ''
-    required: false
 
 outputs:
   image-tag:
     description: 'Tag of image built'
     value: ${{ steps.build.outputs.image-tag }}
+
 runs:
   using: "composite"
   steps:
