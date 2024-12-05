@@ -15,6 +15,9 @@ inputs:
     description: 'The tag to apply to the docker image'
     required: false
     default: ''
+  repository:
+    required: false
+    default: ''
 
 outputs:
   image-tag:
@@ -45,7 +48,7 @@ runs:
     - name: Setup yq
       uses: mikefarah/yq@v4.30.8
 
-    - name: Generate version
+    - name: Generate version from package.json
       if: ${{ inputs.version == '' }}
       working-directory: ${{ inputs.path }}
       shell: bash
@@ -58,6 +61,45 @@ runs:
       shell: bash
       run: |
         echo "VERSION=${{ inputs.version }}" >> $GITHUB_ENV
+
+    - name: Setup environment variables
+      working-directory: ${{ inputs.path }}
+      shell: bash
+      env:
+        ECR_HOST: ${{ inputs.registry }}
+      run: |
+        NAME=$(cat package.json | jq ".name" | xargs)
+
+        echo "NAME=$NAME" >> $GITHUB_ENV
+        # in some docker-compose files, we use the TAG environment variable
+        echo "TAG=$VERSION" >> $GITHUB_ENV
+
+        # determine AWS registry ID
+        [[ $ECR_HOST =~ ^([0-9]*) ]] && AWS_REGISTRY_ID=${BASH_REMATCH[1]}
+        echo "AWS_REGISTRY_ID=$AWS_REGISTRY_ID" >> $GITHUB_ENV
+
+    - name: Load docker-compose file
+      working-directory: ${{ inputs.path }}
+      shell: bash
+      env:
+        ECR_HOST: ${{ inputs.registry }}
+      run: |
+        if [ ! -f docker-compose.yml ]; then
+          echo "::info::Generating docker-compose file"
+          cat >docker-compose.yml <<EOL
+        services:
+          server:
+            image: ${{ inputs.registry }}/${{ inputs.repository }}
+            build:
+              context: .
+              dockerfile: Dockerfile
+            ports:
+              - "3000:80"
+        EOL
+        fi
+
+        SERVICES=$(cat docker-compose.yml | yq eval '.services | keys' -P | sed 's/- //')
+        echo "SERVICES=$SERVICES" >> $GITHUB_ENV
 
     - name: Start Build
       id: build
@@ -79,22 +121,10 @@ runs:
 
         function exe() { echo "\$ $@" ; "$@" ; }
 
-        NAME=$(cat package.json | jq ".name" | xargs)
-
-        [[ $ECR_HOST =~ ^([0-9]*) ]] && AWS_REGISTRY_ID=${BASH_REMATCH[1]}
-
-        SERVICES=$(cat docker-compose.yml | yq eval '.services | keys' -P | sed 's/- //')
-
-        # ensure standard environment variables used are set
-        if [ -z "$ECR_HOST" ]; then
-          echo "::warning::Environment variable ECR_HOST not set"
-          return 1
-        fi
-
-        export NAME=$NAME
-        export TAG=$VERSION
-
         RENDERED_COMPOSE_FILE="/tmp/rendered-compose.yaml"
+
+        echo "=== Diagnostics ==="
+        echo "SERVICES=$SERVICES"
 
         # start build loop
         DID_BUILD=0
@@ -113,7 +143,7 @@ runs:
           DID_BUILD=1
 
           # check if we need to do a multiplatform build
-          PLATFORMS=$(cat $RENDERED_COMPOSE_FILE | yq eval ".services.${service}.platform" -)
+          PLATFORMS=$(cat $RENDERED_COMPOSE_FILE | yq eval '.services["'${service}'"].platform' -)
           if [[ $PLATFORMS != 'null' ]];
           then
             echo "${service} - Preparing for multiplatform builds"
@@ -123,22 +153,27 @@ runs:
           fi
 
           # Get the build details
-          DOCKER_FILE=$(cat $RENDERED_COMPOSE_FILE | yq eval ".services.${service}.build.dockerfile" -)
-          IMAGE_TAG=$(cat $RENDERED_COMPOSE_FILE | yq eval ".services.${service}.image" -)
-          ARGS=$(cat $RENDERED_COMPOSE_FILE | yq eval ".services.${service}.build.args" -)
+          DOCKER_FILE=$(cat $RENDERED_COMPOSE_FILE | yq eval '.services["'${service}'"].build.dockerfile' -)
+          IMAGE_TAG=$(cat $RENDERED_COMPOSE_FILE | yq eval '.services["'${service}'"].image' -)
+          ARGS=$(cat $RENDERED_COMPOSE_FILE | yq eval '.services["'${service}'"].build.args' -)
 
           if [[ "$DOCKER_FILE" == 'null' ]]; then
             echo "::warning:: $service does not have a valid 'dockerfile' in the build config"
             continue
           fi
 
+          if [[ ! -f "$DOCKER_FILE" ]]; then
+            echo "::warning:: $service uses a docker file that doesn't exist"
+            continue
+          fi
+
           # Check if `args` is defined for the service
           if [[ -n ${ARGS} ]];
           then
-              echo "${service} - Building image with extra ARGS"
+            echo "${service} - Building image with extra ARGS"
 
-              # Build the `BUILD_ARGS` variable by mapping the `args` for each service
-              BUILD_ARGS=$(yq eval '.services."'$service'".build.args | to_entries | map("--build-arg " + .key + "=" + .value) | join(" ")' $RENDERED_COMPOSE_FILE)
+            # Build the `BUILD_ARGS` variable by mapping the `args` for each service
+            BUILD_ARGS=$(yq eval '.services["'$service'"].build.args | to_entries | map("--build-arg " + .key + "=" + .value) | join(" ")' $RENDERED_COMPOSE_FILE)
           fi
 
           # Build and push the docker image with the platform and arguments provided
@@ -148,8 +183,6 @@ runs:
           # outputs
           echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
         done
-      env:
-        ECR_HOST: ${{ inputs.registry }}
       working-directory: ${{ inputs.path }}
       shell: bash
 
