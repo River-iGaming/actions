@@ -11,10 +11,6 @@ inputs:
   registry:
     description: 'Registry URI where to publish the docker images'
     required: true
-  version:
-    description: 'The app-version'
-    required: false
-    default: ''
   tag:
     description: 'The tag to apply to the docker image'
     required: false
@@ -58,18 +54,18 @@ runs:
       uses: mikefarah/yq@v4.30.8
 
     - name: Generate version from package.json
-      if: ${{ inputs.version == '' }}
+      if: ${{ inputs.tag == '' }}
       working-directory: ${{ inputs.path }}
       shell: bash
       run: |
         VERSION=$(cat package.json | jq ".version" | xargs)
-        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        echo "TAG=$VERSION" >> $GITHUB_ENV
 
     - name: Use supplied version
-      if: ${{ inputs.version != '' }}
+      if: ${{ inputs.tag != '' }}
       shell: bash
       run: |
-        echo "VERSION=${{ inputs.version }}" >> $GITHUB_ENV
+        echo "TAG=${{ inputs.version }}" >> $GITHUB_ENV
 
     - name: Setup environment variables
       working-directory: ${{ inputs.path }}
@@ -78,10 +74,7 @@ runs:
         ECR_HOST: ${{ inputs.registry }}
       run: |
         NAME=$(cat package.json | jq ".name" | xargs)
-
         echo "NAME=$NAME" >> $GITHUB_ENV
-        # in some docker-compose files, we use the TAG environment variable
-        echo "TAG=$VERSION" >> $GITHUB_ENV
 
         # determine AWS registry ID
         [[ $ECR_HOST =~ ^([0-9]*) ]] && AWS_REGISTRY_ID=${BASH_REMATCH[1]}
@@ -98,11 +91,11 @@ runs:
           cat >docker-compose.yml <<EOL
         services:
           server:
-            image: ${{ inputs.registry }}/${{ inputs.repository }}:${TAG}
+            image: ${{ inputs.registry }}/${{ inputs.repository }}:${{inputs.tag}}
             build:
               context: .
               dockerfile: Dockerfile
-            platforms: linux/amd64,linux/arm64
+            platform: linux/amd64,linux/arm64
         EOL
         fi
 
