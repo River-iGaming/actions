@@ -190,6 +190,7 @@ runs:
         
           PUSH_ARG="--push"
           if [[ "${{ inputs.dry-run }}" == "true" ]];
+          then
             PUSH_ARG=""
           fi
 
