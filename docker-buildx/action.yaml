@@ -11,6 +11,10 @@ inputs:
   registry:
     description: 'Registry URI where to publish the docker images'
     required: true
+  version:
+    description: 'The app-version'
+    required: false
+    default: ''
   tag:
     description: 'The tag to apply to the docker image'
     required: false
@@ -191,10 +195,12 @@ runs:
           PUSH_ARG="--push"
           if [[ "${{ inputs.dry-run }}" == "true" ]];
           then
+            echo "${service} - Building without pushing image (dry-run)"
             PUSH_ARG=""
           fi
 
           # Build and push the docker image with the platform and arguments provided
+          echo "${service} - Building image with tag '"${IMAGE_TAG}"'"
           exe docker buildx build $BUILD_ARGS $PLATFORM_ARGS -t ${IMAGE_TAG} -f ${DOCKER_FILE} --progress plain ${PUSH_ARG} .
           echo "${service} - Build complete"
 
