@@ -18,6 +18,11 @@ inputs:
   repository:
     required: false
     default: ''
+    description: 'Docker container image repository'
+  dry-run:
+    required: false
+    default: "false"
+    description: 'If set, the images produced by this action will not be pushed'
 
 outputs:
   image-tag:
@@ -93,6 +98,7 @@ runs:
             build:
               context: .
               dockerfile: Dockerfile
+            platforms: linux/amd64,linux/arm64
         EOL
         fi
 
@@ -141,13 +147,21 @@ runs:
           DID_BUILD=1
 
           # check if we need to do a multiplatform build
-          PLATFORMS=$(cat $RENDERED_COMPOSE_FILE | yq eval '.services["'${service}'"].platform' -)
+          PLATFORMS=$(cat $RENDERED_COMPOSE_FILE | yq eval '.services["'${service}'"].platforms' -)
           if [[ $PLATFORMS != 'null' ]];
           then
             echo "${service} - Preparing for multiplatform builds"
             PLATFORM_ARGS="--platform $PLATFORMS"
           else
-            echo "${service} - Preparing for single platform build"
+            # backward compatibility shit - in some repos we use 'platform' instead of 'platforms'
+            PLATFORMS=$(cat $RENDERED_COMPOSE_FILE | yq eval '.services["'${service}'"].platform' -)
+            if [[ $PLATFORMS != 'null' ]];
+            then
+              echo "${service} - Preparing for multiplatform builds"
+              PLATFORM_ARGS="--platform $PLATFORMS"
+            else
+              echo "${service} - Preparing for single platform build"
+            fi
           fi
 
           # Get the build details
@@ -173,9 +187,14 @@ runs:
             # Build the `BUILD_ARGS` variable by mapping the `args` for each service
             BUILD_ARGS=$(yq eval '.services["'$service'"].build.args | to_entries | map("--build-arg " + .key + "=" + .value) | join(" ")' $RENDERED_COMPOSE_FILE)
           fi
+        
+          PUSH_ARG="--push"
+          if [[ "${{ inputs.dry-run }}" == "true" ]];
+            PUSH_ARG=""
+          fi
 
           # Build and push the docker image with the platform and arguments provided
-          exe docker buildx build $BUILD_ARGS $PLATFORM_ARGS -t ${IMAGE_TAG} -f ${DOCKER_FILE} --progress plain --push .
+          exe docker buildx build $BUILD_ARGS $PLATFORM_ARGS -t ${IMAGE_TAG} -f ${DOCKER_FILE} --progress plain ${PUSH_ARG} .
           echo "${service} - Build complete"
 
           # outputs
