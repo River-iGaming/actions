@@ -65,7 +65,7 @@ runs:
       if: ${{ inputs.tag != '' }}
       shell: bash
       run: |
-        echo "TAG=${{ inputs.version }}" >> $GITHUB_ENV
+        echo "TAG=${{ inputs.tag }}" >> $GITHUB_ENV
 
     - name: Setup environment variables
       working-directory: ${{ inputs.path }}
