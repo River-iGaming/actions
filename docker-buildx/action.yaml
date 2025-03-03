@@ -23,6 +23,11 @@ inputs:
     required: false
     default: "false"
     description: 'If set, the images produced by this action will not be pushed'
+  build-args:
+    required: false
+    default: ''
+    description: 'A space-separated list of environment variable names to use as build arguments'
+
 
 outputs:
   image-tag:
@@ -107,6 +112,15 @@ runs:
       run: |
         #! /bin/bash
 
+        # Parse build-args list and extract environment variable values
+        BUILD_ARGS=""
+        if [[ -n "${{ inputs.build-args }}" ]]; then
+          for var in ${{ inputs.build-args }}; do
+            value=$(printenv "$var")
+            [ -n "$value" ] && BUILD_ARGS+=" --build-arg $var=$value"
+          done
+        fi
+
         function istagused() {
           REGISTRY_ID=$1
           REPOSITORY_NAME=$2
@@ -138,7 +152,6 @@ runs:
 
           # arguments that are optional, and need to be passed to docker buildx
           PLATFORM_ARGS=""
-          BUILD_ARGS=""
 
           # signal the pipeline that we did indeed to at least one build
           DID_BUILD=1
@@ -182,9 +195,12 @@ runs:
             echo "${service} - Building image with extra ARGS"
 
             # Build the `BUILD_ARGS` variable by mapping the `args` for each service
-            BUILD_ARGS=$(yq eval '.services["'$service'"].build.args | to_entries | map("--build-arg " + .key + "=" + .value) | join(" ")' $RENDERED_COMPOSE_FILE)
+            COMPOSE_BUILD_ARGS=$(yq eval '.services["'$service'"].build.args | to_entries | map("--build-arg " + .key + "=" + .value) | join(" ")' $RENDERED_COMPOSE_FILE)
+            BUILD_ARGS="$BUILD_ARGS $COMPOSE_BUILD_ARGS"
           fi
-        
+
+          echo "Using build arguments: $BUILD_ARGS"
+
           PUSH_ARG="--push"
           if [[ "${{ inputs.dry-run }}" == "true" ]];
           then
