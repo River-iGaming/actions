@@ -138,6 +138,10 @@ function generateFeLibraryVersionString(branch, version, runNumber) {
 		case "develop":
 			return generateFinalVersionName(version, "dev", runNumber);
 		default:
+			const versionRegex = /^\d+(\.\d+){0,2}(\.x(\.x)?)?$/; // e.g. 3.x OR 3.x.x OR 3.1 OR 3.1.1
+			if (versionRegex.test(branch)) {
+				return version;
+			}
 			return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
 	}
 }
