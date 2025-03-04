@@ -246,7 +246,7 @@ runs:
           # Build and push the docker image with the platform and arguments provided
           echo "${service} - Building image with tag '"${IMAGE_TAG}"'"
 
-          check_missing_args "$DOCKER_FILE" "$ALL_BUILD_ARGS"
+          check_build_args "$DOCKER_FILE" "$ALL_BUILD_ARGS"
 
           exe docker buildx build $BUILD_ARGS $PLATFORM_ARGS -t ${IMAGE_TAG} -f ${DOCKER_FILE} --progress plain ${PUSH_ARG} .
           echo "${service} - Build complete"
