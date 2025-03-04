@@ -134,6 +134,41 @@ runs:
           return 1
         }
 
+        # Function to check for missing and extra build arguments
+        function check_build_args() {
+          local dockerfile="$1"
+          local passed_args="$2"
+
+          # Extract ARG variables from the Dockerfile
+          local required_args=$(grep -oP '^ARG \K\S+' "$dockerfile" || true)
+
+          # Extract ARGs that have default values (ignore these in missing check)
+          local default_args=$(grep -oP '^ARG \K\S+=.*' "$dockerfile" | cut -d'=' -f1 || true)
+
+          echo "Checking Dockerfile: $dockerfile"
+
+          # Convert required_args and default_args to arrays
+          required_args_array=($required_args)
+          default_args_array=($default_args)
+
+          # Check for missing arguments (only if they do NOT have a default value)
+          for arg in "${required_args_array[@]}"; do
+            if [[ ! " ${default_args_array[*]} " =~ " $arg " ]] && [[ ! " $passed_args " =~ " $arg=" ]]; then
+              echo "WARNING: Missing build argument: $arg (defined in $dockerfile but not passed, and has no default value)"
+            else
+              echo "OK: Argument $arg is either passed or has a default value"
+            fi
+          done
+
+          # Check for extra arguments (passed but not defined in Dockerfile)
+          for passed_arg in $passed_args; do
+            arg_name=$(echo "$passed_arg" | cut -d'=' -f1)
+            if [[ ! " ${required_args_array[*]} " =~ " $arg_name " ]]; then
+              echo "WARNING: Extra build argument: $arg_name (passed but not defined in $dockerfile)"
+            fi
+          done
+        }
+        
         function exe() { echo "\$ $@" ; "$@" ; }
 
         RENDERED_COMPOSE_FILE="/tmp/rendered-compose.yaml"
@@ -210,6 +245,9 @@ runs:
 
           # Build and push the docker image with the platform and arguments provided
           echo "${service} - Building image with tag '"${IMAGE_TAG}"'"
+
+          check_missing_args "$DOCKER_FILE" "$ALL_BUILD_ARGS"
+
           exe docker buildx build $BUILD_ARGS $PLATFORM_ARGS -t ${IMAGE_TAG} -f ${DOCKER_FILE} --progress plain ${PUSH_ARG} .
           echo "${service} - Build complete"
 
