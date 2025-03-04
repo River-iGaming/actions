@@ -234,6 +234,8 @@ runs:
             BUILD_ARGS="$BUILD_ARGS $COMPOSE_BUILD_ARGS"
           fi
 
+          check_build_args "$DOCKER_FILE" "$BUILD_ARGS"
+
           echo "Using build arguments: $BUILD_ARGS"
 
           PUSH_ARG="--push"
@@ -245,8 +247,6 @@ runs:
 
           # Build and push the docker image with the platform and arguments provided
           echo "${service} - Building image with tag '"${IMAGE_TAG}"'"
-
-          check_build_args "$DOCKER_FILE" "$ALL_BUILD_ARGS"
 
           exe docker buildx build $BUILD_ARGS $PLATFORM_ARGS -t ${IMAGE_TAG} -f ${DOCKER_FILE} --progress plain ${PUSH_ARG} .
           echo "${service} - Build complete"
