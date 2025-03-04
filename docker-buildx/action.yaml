@@ -1,0 +1,252 @@
+name: 'docker buildx'
+description: |
+  The docker-buildx replaces the use of docker compose when building docker images.
+  The configuration for the build is loaded from 'package.json' as well as docker-compose.yaml.  Multiple services as well as multiple platforms
+  are supported through customization of the docker-compose file.
+
+inputs:
+  path:
+    description: 'Directory containing the Docker and docker-compose files'
+    required: true
+  registry:
+    description: 'Registry URI where to publish the docker images'
+    required: true
+  tag:
+    description: 'The tag to apply to the docker image'
+    required: false
+    default: ''
+  repository:
+    required: false
+    default: ''
+    description: 'Docker container image repository'
+  dry-run:
+    required: false
+    default: "false"
+    description: 'If set, the images produced by this action will not be pushed'
+  build-args:
+    required: false
+    default: ''
+    description: 'A space-separated list of environment variable names to use as build arguments'
+
+
+outputs:
+  image-tag:
+    description: 'Tag of image built'
+    value: ${{ steps.build.outputs.image-tag }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@master
+      with:
+        platforms: all
+
+    - name: Setup Docker buildx
+      id: buildx-setup
+      uses: docker/setup-buildx-action@v2
+
+    - name: Inspect builder
+      shell: bash
+      run: |
+        echo "Name:      ${{ steps.buildx-setup.outputs.name }}"
+        echo "Endpoint:  ${{ steps.buildx-setup.outputs.endpoint }}"
+        echo "Status:    ${{ steps.buildx-setup.outputs.status }}"
+        echo "Flags:     ${{ steps.buildx-setup.outputs.flags }}"
+        echo "Platforms: ${{ steps.buildx-setup.outputs.platforms }}"
+
+    - name: Setup yq
+      uses: mikefarah/yq@v4.30.8
+
+    - name: Generate version from package.json
+      if: ${{ inputs.tag == '' }}
+      working-directory: ${{ inputs.path }}
+      shell: bash
+      run: |
+        VERSION=$(cat package.json | jq ".version" | xargs)
+        echo "TAG=$VERSION" >> $GITHUB_ENV
+
+    - name: Use supplied version
+      if: ${{ inputs.tag != '' }}
+      shell: bash
+      run: |
+        echo "TAG=${{ inputs.tag }}" >> $GITHUB_ENV
+
+    - name: Setup environment variables
+      working-directory: ${{ inputs.path }}
+      shell: bash
+      env:
+        ECR_HOST: ${{ inputs.registry }}
+      run: |
+        NAME=$(cat package.json | jq ".name" | xargs)
+        echo "NAME=$NAME" >> $GITHUB_ENV
+
+        # determine AWS registry ID
+        [[ $ECR_HOST =~ ^([0-9]*) ]] && AWS_REGISTRY_ID=${BASH_REMATCH[1]}
+        echo "AWS_REGISTRY_ID=$AWS_REGISTRY_ID" >> $GITHUB_ENV
+
+    - name: Load docker-compose file
+      working-directory: ${{ inputs.path }}
+      shell: bash
+      env:
+        ECR_HOST: ${{ inputs.registry }}
+      run: |
+        if [ ! -f docker-compose.yml ]; then
+          echo "::info::Generating docker-compose file"
+          cat >docker-compose.yml <<EOL
+        services:
+          server:
+            image: ${{ inputs.registry }}/${{ inputs.repository }}:${{inputs.tag}}
+            build:
+              context: .
+              dockerfile: Dockerfile
+            platform: linux/amd64,linux/arm64
+        EOL
+        fi
+
+        SERVICES=$(cat docker-compose.yml | yq eval '.services | keys' -P | sed 's/- //')
+        echo "SERVICES=$SERVICES" >> $GITHUB_ENV
+
+    - name: Start Build
+      id: build
+      run: |
+        #! /bin/bash
+
+        # Parse build-args list and extract environment variable values
+        BUILD_ARGS=""
+        if [[ -n "${{ inputs.build-args }}" ]]; then
+          for var in ${{ inputs.build-args }}; do
+            value=$(printenv "$var")
+            [ -n "$value" ] && BUILD_ARGS+=" --build-arg $var=$value"
+          done
+        fi
+
+        function istagused() {
+          REGISTRY_ID=$1
+          REPOSITORY_NAME=$2
+          TAG_RELEASE=$3
+
+          set -x
+          if aws ecr describe-images --repository-name="$REPOSITORY_NAME" --registry-id "$REGISTRY_ID" --image-ids=imageTag="$TAG_RELEASE" > /dev/null 2>&1; then
+            return 0
+          fi
+          set +x
+          return 1
+        }
+
+        # Function to check for missing and extra build arguments
+        function check_build_args() {
+          local dockerfile="$1"
+          local passed_args="$2"
+
+          # Extract ARG variables from the Dockerfile
+          local required_args=$(grep -oP '^ARG \K\S+' "$dockerfile" || true)
+
+          # Extract ARGs that have default values (ignore these in missing check)
+          local default_args=$(grep -oP '^ARG \K\S+=.*' "$dockerfile" | cut -d'=' -f1 || true)
+
+          echo "Checking Dockerfile: $dockerfile"
+
+          # Convert required_args and default_args to arrays
+          required_args_array=($required_args)
+          default_args_array=($default_args)
+
+          # Check for missing arguments (only if they do NOT have a default value)
+          for arg in "${required_args_array[@]}"; do
+            if [[ ! " ${default_args_array[*]} " =~ " $arg " ]] && [[ ! " $passed_args " =~ " $arg=" ]]; then
+              echo "WARNING: Missing build argument: $arg (defined in $dockerfile but not passed, and has no default value)"
+              echo "- ⚠️ Missing docker build argument: \`$arg\` (no default value)" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "OK: Argument $arg is either passed or has a default value"
+            fi
+          done
+        }
+        
+        function exe() { echo "\$ $@" ; "$@" ; }
+
+        RENDERED_COMPOSE_FILE="/tmp/rendered-compose.yaml"
+
+        echo "=== Diagnostics ==="
+        echo "SERVICES=$SERVICES"
+
+        # start build loop
+        DID_BUILD=0
+        for service in $SERVICES;
+        do
+          echo "Building service ${service}"
+
+          # Render docker-compose file every iteration, just in case we have diff environment variables
+          docker compose config > $RENDERED_COMPOSE_FILE
+
+          # arguments that are optional, and need to be passed to docker buildx
+          PLATFORM_ARGS=""
+
+          # signal the pipeline that we did indeed to at least one build
+          DID_BUILD=1
+
+          # check if we need to do a multiplatform build
+          PLATFORMS=$(cat $RENDERED_COMPOSE_FILE | yq eval '.services["'${service}'"].platforms' -)
+          if [[ $PLATFORMS != 'null' ]];
+          then
+            echo "${service} - Preparing for multiplatform builds"
+            PLATFORM_ARGS="--platform $PLATFORMS"
+          else
+            # backward compatibility shit - in some repos we use 'platform' instead of 'platforms'
+            PLATFORMS=$(cat $RENDERED_COMPOSE_FILE | yq eval '.services["'${service}'"].platform' -)
+            if [[ $PLATFORMS != 'null' ]];
+            then
+              echo "${service} - Preparing for multiplatform builds"
+              PLATFORM_ARGS="--platform $PLATFORMS"
+            else
+              echo "${service} - Preparing for single platform build"
+            fi
+          fi
+
+          # Get the build details
+          DOCKER_FILE=$(cat $RENDERED_COMPOSE_FILE | yq eval '.services["'${service}'"].build.dockerfile' -)
+          IMAGE_TAG=$(cat $RENDERED_COMPOSE_FILE | yq eval '.services["'${service}'"].image' -)
+          ARGS=$(cat $RENDERED_COMPOSE_FILE | yq eval '.services["'${service}'"].build.args' -)
+
+          if [[ "$DOCKER_FILE" == 'null' ]]; then
+            echo "::warning:: $service does not have a valid 'dockerfile' in the build config"
+            continue
+          fi
+
+          if [[ ! -f "$DOCKER_FILE" ]]; then
+            echo "::warning:: $service uses a docker file that doesn't exist"
+            continue
+          fi
+
+          # Check if `args` is defined for the service
+          if [[ -n ${ARGS} ]];
+          then
+            echo "${service} - Building image with extra ARGS"
+
+            # Build the `BUILD_ARGS` variable by mapping the `args` for each service
+            COMPOSE_BUILD_ARGS=$(yq eval '.services["'$service'"].build.args | to_entries | map("--build-arg " + .key + "=" + .value) | join(" ")' $RENDERED_COMPOSE_FILE)
+            BUILD_ARGS="$BUILD_ARGS $COMPOSE_BUILD_ARGS"
+          fi
+
+          # check_build_args "$DOCKER_FILE" "$BUILD_ARGS"
+
+          echo "Using build arguments: $BUILD_ARGS"
+
+          PUSH_ARG="--push"
+          if [[ "${{ inputs.dry-run }}" == "true" ]];
+          then
+            echo "${service} - Building without pushing image (dry-run)"
+            PUSH_ARG=""
+          fi
+
+          # Build and push the docker image with the platform and arguments provided
+          echo "${service} - Building image with tag '"${IMAGE_TAG}"'"
+
+          exe docker buildx build $BUILD_ARGS $PLATFORM_ARGS -t ${IMAGE_TAG} -f ${DOCKER_FILE} --progress plain ${PUSH_ARG} .
+          echo "${service} - Build complete"
+
+          # outputs
+          echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+        done
+      working-directory: ${{ inputs.path }}
+      shell: bash
+

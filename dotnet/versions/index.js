@@ -27,6 +27,9 @@ try {
 		case "fe-app":
 			buildVersion = generateFeAppVersionString(branch, version, runNumber);
 			break;
+		case "fe-lib":
+			buildVersion = generateFeLibraryVersionString(branch, version, runNumber);
+			break;
 		default:
 			throw Error(`'${type}' is not a valid type for this action.`);
 	}
@@ -91,6 +94,25 @@ function generateFeAppVersionString(branch, version, runNumber) {
 	}
 
 	return generateFinalVersionName(version, "demo-" + normalizeBranchName(branch, true), runNumber);
+}
+
+function generateFeLibraryVersionString(branch, version, runNumber) {
+	switch (branch) {
+		case "main":
+		case "master":
+			return version;
+		case "develop":
+			return generateFinalVersionName(version, "dev", runNumber);
+		default:
+			if (branch.startsWith("feature")) {
+				return generateFinalVersionName(version, normalizeBranchName(branch, true), runNumber);
+			}
+			const versionRegex = /^\d+(\.\d+){0,2}(\.x(\.x)?)?$/; // e.g. 3.x OR 3.x.x OR 3.1 OR 3.1.1
+			if (versionRegex.test(branch)) {
+				return version;
+			}
+			return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
+	}
 }
 
 function generateFinalVersionName(version, descriptor, runNumber) {
