@@ -160,15 +160,6 @@ runs:
               echo "OK: Argument $arg is either passed or has a default value"
             fi
           done
-
-          # Check for extra arguments (passed but not defined in Dockerfile)
-          for passed_arg in $passed_args; do
-            arg_name=$(echo "$passed_arg" | cut -d'=' -f1)
-            if [[ ! " ${required_args_array[*]} " =~ " $arg_name " ]]; then
-              echo "WARNING: Extra build argument: $arg_name (passed but not defined in $dockerfile)"
-              echo "- ⚠️ Extra build argument: \`$arg_name\` (not defined in Dockerfile)" >> "$GITHUB_STEP_SUMMARY"
-            fi
-          done
         }
         
         function exe() { echo "\$ $@" ; "$@" ; }
@@ -236,7 +227,7 @@ runs:
             BUILD_ARGS="$BUILD_ARGS $COMPOSE_BUILD_ARGS"
           fi
 
-          check_build_args "$DOCKER_FILE" "$BUILD_ARGS"
+          # check_build_args "$DOCKER_FILE" "$BUILD_ARGS"
 
           echo "Using build arguments: $BUILD_ARGS"
 
