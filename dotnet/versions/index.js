@@ -17,14 +17,12 @@ try {
 
 	switch (type) {
 		case "lib":
-			buildVersion = generateLibraryVersionString(branch, version, runNumber);
-			break;
 		case "dotnet-app":
 		case "deploy": // todo: deprecate remove
 			if (type === "deploy") {
 				core.warning("The 'deploy' type is deprecated. Please use 'dotnet-app' instead.");
 			}
-			buildVersion = generateMwAppVersionString(branch, version, runNumber);
+			buildVersion = generateVersionString(branch, version, runNumber);
 			break;
 		case "fe-app":
 			buildVersion = generateFeAppVersionString(branch, version, runNumber);
@@ -54,52 +52,20 @@ try {
 	}
 }
 
-function generateLibraryVersionString(branch, version, runNumber) {
-	if (branch && branch.startsWith("release")) {
-		return generateFinalVersionName(version, normalizeBranchName(branch, true), runNumber);
-	}
-
-	switch (branch) {
-		case "main":
-		case "master":
-			return version;
-		case "develop":
-			return generateFinalVersionName(version, "dev", runNumber);
-		default:
-			return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
-	}
-}
-
-function generateMwAppVersionString(branch, version, runNumber) {
-	if (branch === "main" || branch === "master") {
-		return version;
-	}
-
-	if (branch === "develop") {
+function generateVersionString(branch, version, runNumber) {
+	if (["master", "main", "master-testing"].includes(branch)) {
 		return generateFinalVersionName(version, "dev", runNumber);
 	}
 
-	if (branch === "vnext") {
-		return generateFinalVersionName(version, "vnext", runNumber);
-	}
-
-	if (branch.startsWith("feature")) {
+	if (branch.startsWith("feature") || branch.startsWith("hotfix")) {
 		return generateFinalVersionName(version, "demo-" + normalizeBranchName(branch, true), runNumber);
 	}
 
-	if (branch.startsWith("hotfix")) {
-		return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
-	}
-
 	if (branch.startsWith("release")) {
-		return generateFinalVersionName(version, normalizeBranchName(branch, true), runNumber);
+		return version;
 	}
 
-	if (branch.startsWith("preview")) {
-		return generateFinalVersionName(version, "preview-" + normalizeBranchName(branch, true), runNumber);
-	}
-
-	return generateFinalVersionName(version, "demo-" + normalizeBranchName(branch, true), runNumber);
+	return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
 }
 
 function generateFeAppVersionString(branch, version, runNumber) {
