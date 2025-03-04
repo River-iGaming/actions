@@ -155,7 +155,7 @@ runs:
           for arg in "${required_args_array[@]}"; do
             if [[ ! " ${default_args_array[*]} " =~ " $arg " ]] && [[ ! " $passed_args " =~ " $arg=" ]]; then
               echo "WARNING: Missing build argument: $arg (defined in $dockerfile but not passed, and has no default value)"
-              echo "- ⚠️ Missing build argument: \`$arg\` (no default value)" >> "$GITHUB_STEP_SUMMARY"
+              echo "- ⚠️ Missing docker build argument: \`$arg\` (no default value)" >> "$GITHUB_STEP_SUMMARY"
             else
               echo "OK: Argument $arg is either passed or has a default value"
             fi
