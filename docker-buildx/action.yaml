@@ -23,6 +23,11 @@ inputs:
     required: false
     default: "false"
     description: 'If set, the images produced by this action will not be pushed'
+  build-args:
+    required: false
+    default: ''
+    description: 'A space-separated list of environment variable names to use as build arguments'
+
 
 outputs:
   image-tag:
@@ -107,6 +112,15 @@ runs:
       run: |
         #! /bin/bash
 
+        # Parse build-args list and extract environment variable values
+        BUILD_ARGS=""
+        if [[ -n "${{ inputs.build-args }}" ]]; then
+          for var in ${{ inputs.build-args }}; do
+            value=$(printenv "$var")
+            [ -n "$value" ] && BUILD_ARGS+=" --build-arg $var=$value"
+          done
+        fi
+
         function istagused() {
           REGISTRY_ID=$1
           REPOSITORY_NAME=$2
@@ -120,6 +134,34 @@ runs:
           return 1
         }
 
+        # Function to check for missing and extra build arguments
+        function check_build_args() {
+          local dockerfile="$1"
+          local passed_args="$2"
+
+          # Extract ARG variables from the Dockerfile
+          local required_args=$(grep -oP '^ARG \K\S+' "$dockerfile" || true)
+
+          # Extract ARGs that have default values (ignore these in missing check)
+          local default_args=$(grep -oP '^ARG \K\S+=.*' "$dockerfile" | cut -d'=' -f1 || true)
+
+          echo "Checking Dockerfile: $dockerfile"
+
+          # Convert required_args and default_args to arrays
+          required_args_array=($required_args)
+          default_args_array=($default_args)
+
+          # Check for missing arguments (only if they do NOT have a default value)
+          for arg in "${required_args_array[@]}"; do
+            if [[ ! " ${default_args_array[*]} " =~ " $arg " ]] && [[ ! " $passed_args " =~ " $arg=" ]]; then
+              echo "WARNING: Missing build argument: $arg (defined in $dockerfile but not passed, and has no default value)"
+              echo "- ⚠️ Missing docker build argument: \`$arg\` (no default value)" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "OK: Argument $arg is either passed or has a default value"
+            fi
+          done
+        }
+        
         function exe() { echo "\$ $@" ; "$@" ; }
 
         RENDERED_COMPOSE_FILE="/tmp/rendered-compose.yaml"
@@ -138,7 +180,6 @@ runs:
 
           # arguments that are optional, and need to be passed to docker buildx
           PLATFORM_ARGS=""
-          BUILD_ARGS=""
 
           # signal the pipeline that we did indeed to at least one build
           DID_BUILD=1
@@ -182,9 +223,14 @@ runs:
             echo "${service} - Building image with extra ARGS"
 
             # Build the `BUILD_ARGS` variable by mapping the `args` for each service
-            BUILD_ARGS=$(yq eval '.services["'$service'"].build.args | to_entries | map("--build-arg " + .key + "=" + .value) | join(" ")' $RENDERED_COMPOSE_FILE)
+            COMPOSE_BUILD_ARGS=$(yq eval '.services["'$service'"].build.args | to_entries | map("--build-arg " + .key + "=" + .value) | join(" ")' $RENDERED_COMPOSE_FILE)
+            BUILD_ARGS="$BUILD_ARGS $COMPOSE_BUILD_ARGS"
           fi
-        
+
+          # check_build_args "$DOCKER_FILE" "$BUILD_ARGS"
+
+          echo "Using build arguments: $BUILD_ARGS"
+
           PUSH_ARG="--push"
           if [[ "${{ inputs.dry-run }}" == "true" ]];
           then
@@ -194,6 +240,7 @@ runs:
 
           # Build and push the docker image with the platform and arguments provided
           echo "${service} - Building image with tag '"${IMAGE_TAG}"'"
+
           exe docker buildx build $BUILD_ARGS $PLATFORM_ARGS -t ${IMAGE_TAG} -f ${DOCKER_FILE} --progress plain ${PUSH_ARG} .
           echo "${service} - Build complete"
 
