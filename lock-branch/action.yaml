@@ -34,13 +34,16 @@ runs:
         gh api -X PUT "/repos/${{ github.repository }}/branches/${{ inputs.branch_name }}/protection" \
           -H "Accept: application/vnd.github.v3+json" \
           -H "Authorization: token ${{ inputs.github_token }}" \
-          -d "{
-            \"required_pull_request_reviews\": {
-              \"dismiss_stale_reviews\": true,
-              \"require_code_owner_reviews\": $REQUIRE_CODE_OWNERS,
-              \"required_approving_review_count\": $REQUIRED_APPROVAL_COUNT
-            },
-            \"enforce_admins\": true
-          }"
+          --input - <<EOF
+        {
+          "required_pull_request_reviews": {
+            "dismiss_stale_reviews": true,
+            "require_code_owner_reviews": ${REQUIRE_CODE_OWNERS},
+            "required_approving_review_count": ${REQUIRED_APPROVAL_COUNT}
+          },
+          "enforce_admins": true
+        }
+        EOF
+
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
