@@ -43,7 +43,7 @@ runs:
           },
           "required_status_checks": null,
           "restrictions": null,
-          "enforce_admins": true
+          "enforce_admins": false
         }
         EOF
 
