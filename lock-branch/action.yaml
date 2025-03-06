@@ -19,9 +19,10 @@ inputs:
     default: 1
 
 runs:
-  using: "bash"
+  using: "composite"
   steps:
     - name: Lock Branch
+      shell: bash
       run: |
         echo "Locking branch: ${{ inputs.branch_name }}"
 
