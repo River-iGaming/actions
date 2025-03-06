@@ -41,6 +41,8 @@ runs:
             "require_code_owner_reviews": ${REQUIRE_CODE_OWNERS},
             "required_approving_review_count": ${REQUIRED_APPROVAL_COUNT}
           },
+          required_status_checks: null,
+          restrictions: null,
           "enforce_admins": true
         }
         EOF
