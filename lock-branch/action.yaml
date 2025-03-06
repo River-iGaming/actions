@@ -38,7 +38,7 @@ runs:
             \"required_pull_request_reviews\": {
               \"dismiss_stale_reviews\": true,
               \"require_code_owner_reviews\": $REQUIRE_CODE_OWNERS,
-              \"required_approval_count\": $REQUIRED_APPROVAL_COUNT
+              \"required_approving_review_count\": $REQUIRED_APPROVAL_COUNT
             },
             \"enforce_admins\": true
           }"
