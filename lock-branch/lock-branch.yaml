@@ -1,0 +1,45 @@
+name: "Lock Branch"
+
+description: "Lock a branch by setting its protection rules after code review approval."
+
+inputs:
+  branch_name:
+    description: "The name of the branch to lock"
+    required: true
+    type: string
+  require_code_owner_reviews:
+    description: "Require Code Owner approval"
+    required: false
+    type: boolean
+    default: true
+  required_approval_count:
+    description: "The number of approvals required"
+    required: false
+    type: number
+    default: 1
+
+runs:
+  using: "bash"
+  steps:
+    - name: Lock Branch
+      run: |
+        echo "Locking branch: ${{ inputs.branch_name }}"
+
+        REQUIRE_CODE_OWNERS=${{ inputs.require_code_owner_reviews }}
+        REQUIRED_APPROVAL_COUNT=${{ inputs.required_approval_count }}
+
+        echo "Locking branch with $REQUIRED_APPROVAL_COUNT required approvals and code owner review requirement set to $REQUIRE_CODE_OWNERS"
+
+        gh api -X PUT "/repos/${{ github.repository }}/branches/${{ inputs.branch_name }}/protection" \
+          -H "Accept: application/vnd.github.v3+json" \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          -d "{
+            \"required_pull_request_reviews\": {
+              \"dismiss_stale_reviews\": true,
+              \"require_code_owner_reviews\": $REQUIRE_CODE_OWNERS,
+              \"required_approval_count\": $REQUIRED_APPROVAL_COUNT
+            },
+            \"enforce_admins\": true
+          }"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
