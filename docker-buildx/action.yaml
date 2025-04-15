@@ -11,6 +11,10 @@ inputs:
   registry:
     description: 'Registry URI where to publish the docker images'
     required: true
+  name:
+    description: 'Name of the module being built.'
+    required: false
+    default: ''
   tag:
     description: 'The tag to apply to the docker image'
     required: false
@@ -72,15 +76,26 @@ runs:
       run: |
         echo "TAG=${{ inputs.tag }}" >> $GITHUB_ENV
 
+    - name: Load module name from package.json
+      if: ${{ inputs.name == '' }}
+      working-directory: ${{ inputs.path }}
+      shell: bash
+      run: |
+        NAME=$(cat package.json | jq ".name" | xargs)
+        echo "NAME=$NAME" >> $GITHUB_ENV
+
+    - name: Use supplied 'name'
+      if: ${{ inputs.name != '' }}
+      shell: bash
+      run: |
+        echo "NAME=$NAME" >> $GITHUB_ENV
+
     - name: Setup environment variables
       working-directory: ${{ inputs.path }}
       shell: bash
       env:
         ECR_HOST: ${{ inputs.registry }}
       run: |
-        NAME=$(cat package.json | jq ".name" | xargs)
-        echo "NAME=$NAME" >> $GITHUB_ENV
-
         # determine AWS registry ID
         [[ $ECR_HOST =~ ^([0-9]*) ]] && AWS_REGISTRY_ID=${BASH_REMATCH[1]}
         echo "AWS_REGISTRY_ID=$AWS_REGISTRY_ID" >> $GITHUB_ENV
