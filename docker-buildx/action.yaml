@@ -77,7 +77,6 @@ runs:
           echo "::error Tag not specified, and package.json not found, stopping build"
           exit 1
         fi
-          
 
     - name: Use supplied version
       if: ${{ inputs.tag != '' }}
@@ -130,11 +129,13 @@ runs:
         ${{ inputs.compose }}
         EOL
         
+        echo "::notice:: Using supplied compose file." 
         echo "DOCKER_COMPOSE_FILE=/tmp/docker-compose.build.yml" >> $GITHUB_ENV
         
 
     - name: Use in-repo docker-compose file, if available, otherwise generate single use file
       working-directory: ${{ inputs.path }}
+      if: ${{ inputs.compose == '' }}
       shell: bash
       run: |
         if [ ! -f docker-compose.yml ]; then
@@ -148,9 +149,10 @@ runs:
               dockerfile: Dockerfile
             platform: linux/amd64,linux/arm64
         EOL
-        
+          echo "::notice:: Using generated docker-compose file." 
           echo "DOCKER_COMPOSE_FILE=/tmp/docker-compose.build.yml" >> $GITHUB_ENV
         else
+          echo "::notice:: Using in-repo docker-compose file." 
           echo "DOCKER_COMPOSE_FILE=`pwd`/docker-compose.yml" >> $GITHUB_ENV
         fi
 
