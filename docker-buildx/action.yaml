@@ -74,7 +74,7 @@ runs:
           VERSION=$(cat package.json | jq ".version" | xargs)
           echo "TAG=$VERSION" >> $GITHUB_ENV
         else
-          echo "::error Tag not specified, and package.json not found, stopping build"
+          echo "::error:: Tag not specified, and package.json not found, stopping build"
           exit 1
         fi
 
