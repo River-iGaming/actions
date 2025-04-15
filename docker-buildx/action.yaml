@@ -103,6 +103,7 @@ runs:
         
         # ensure ECR_HOST and ECR_REPOSITORY are available across all tasks
         echo "ECR_HOST=$ECR_HOST" >> $GITHUB_ENV
+        echo "ECR_REGISTRY=$ECR_HOST" >> $GITHUB_ENV
         echo "ECR_REPOSITORY=$ECR_REPOSITORY" >> $GITHUB_ENV
         
         # determine AWS registry ID
