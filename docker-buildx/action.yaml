@@ -31,7 +31,10 @@ inputs:
     required: false
     default: ''
     description: 'A space-separated list of environment variable names to use as build arguments'
-
+  compose:
+    required: false
+    default: ''
+    description: 'Custom docker-compose file to use when building the docker images'
 
 outputs:
   image-tag:
@@ -95,16 +98,33 @@ runs:
       shell: bash
       env:
         ECR_HOST: ${{ inputs.registry }}
+        ECR_REPOSITORY: ${{ inputs.repository }}
       run: |
+        
+        # ensure ECR_HOST and ECR_REPOSITORY are available across all tasks
+        echo "ECR_HOST=$ECR_HOST" >> $GITHUB_ENV
+        echo "ECR_REPOSITORY=$ECR_REPOSITORY" >> $GITHUB_ENV
+        
         # determine AWS registry ID
         [[ $ECR_HOST =~ ^([0-9]*) ]] && AWS_REGISTRY_ID=${BASH_REMATCH[1]}
         echo "AWS_REGISTRY_ID=$AWS_REGISTRY_ID" >> $GITHUB_ENV
 
-    - name: Load docker-compose file
-      working-directory: ${{ inputs.path }}
+    - name: Use supplied docker-compose file
       shell: bash
+      if: ${{ inputs.compose != '' }}
       env:
         ECR_HOST: ${{ inputs.registry }}
+      run: |
+        cat >/tmp/docker-compose.build.yml <<EOL
+        ${{ inputs.compose }}
+        EOL
+        
+        echo "DOCKER_COMPOSE_FILE=/tmp/docker-compose.build.yml" >> $GITHUB_ENV
+        
+
+    - name: Use in-repo docker-compose file, if available, otherwise generate single use file
+      working-directory: ${{ inputs.path }}
+      shell: bash
       run: |
         if [ ! -f docker-compose.yml ]; then
           echo "::info::Generating docker-compose file"
@@ -117,9 +137,18 @@ runs:
               dockerfile: Dockerfile
             platform: linux/amd64,linux/arm64
         EOL
+        
+          echo "DOCKER_COMPOSE_FILE=/tmp/docker-compose.build.yml" >> $GITHUB_ENV
+        else
+          echo "DOCKER_COMPOSE_FILE=`pwd`/docker-compose.yml" >> $GITHUB_ENV
         fi
 
-        SERVICES=$(cat docker-compose.yml | yq eval '.services | keys' -P | sed 's/- //')
+    - name: Load docker-compose file
+      working-directory: ${{ inputs.path }}
+      shell: bash
+      run: |
+        echo "::notice:: Using $DOCKER_COMPOSE_FILE compose file"
+        SERVICES=$(cat $DOCKER_COMPOSE_FILE | yq eval '.services | keys' -P | sed 's/- //')
         echo "SERVICES=$SERVICES" >> $GITHUB_ENV
 
     - name: Start Build
@@ -191,7 +220,7 @@ runs:
           echo "Building service ${service}"
 
           # Render docker-compose file every iteration, just in case we have diff environment variables
-          docker compose config > $RENDERED_COMPOSE_FILE
+          docker compose -f $DOCKER_COMPOSE_FILE config > $RENDERED_COMPOSE_FILE
 
           # arguments that are optional, and need to be passed to docker buildx
           PLATFORM_ARGS=""
