@@ -70,8 +70,14 @@ runs:
       working-directory: ${{ inputs.path }}
       shell: bash
       run: |
-        VERSION=$(cat package.json | jq ".version" | xargs)
-        echo "TAG=$VERSION" >> $GITHUB_ENV
+        if [ -f package.json ]; then
+          VERSION=$(cat package.json | jq ".version" | xargs)
+          echo "TAG=$VERSION" >> $GITHUB_ENV
+        else
+          echo "::error Tag not specified, and package.json not found, stopping build"
+          exit 1
+        fi
+          
 
     - name: Use supplied version
       if: ${{ inputs.tag != '' }}
@@ -84,14 +90,18 @@ runs:
       working-directory: ${{ inputs.path }}
       shell: bash
       run: |
-        NAME=$(cat package.json | jq ".name" | xargs)
-        echo "NAME=$NAME" >> $GITHUB_ENV
+        if [ -f package.json ]; then
+          NAME=$(cat package.json | jq ".name" | xargs)
+          echo "NAME=$NAME" >> $GITHUB_ENV
+        else
+          echo "::notice:: Name not specified, and package.json not found, skipping"
+        fi
 
     - name: Use supplied 'name'
       if: ${{ inputs.name != '' }}
       shell: bash
       run: |
-        echo "NAME=$NAME" >> $GITHUB_ENV
+        echo "NAME=${{ inputs.name }}" >> $GITHUB_ENV
 
     - name: Setup environment variables
       working-directory: ${{ inputs.path }}
