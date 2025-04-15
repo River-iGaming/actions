@@ -161,6 +161,12 @@ runs:
       shell: bash
       run: |
         echo "::notice:: Using $DOCKER_COMPOSE_FILE compose file"
+        
+        cat $DOCKER_COMPOSE_FILE
+        
+        echo "===="
+        echo "Extracting list of services to build."
+        
         SERVICES=$(cat $DOCKER_COMPOSE_FILE | yq eval '.services | keys' -P | sed 's/- //')
         echo "SERVICES=$SERVICES" >> $GITHUB_ENV
 
