@@ -67,8 +67,8 @@ try {
 	core.setFailed(error);
 }
 
-function isVersionAlteredInNonMasterBranch(isMasterBranch, coreVersionTagMatch) {
-	return !isMasterBranch && !coreVersionTagMatch && github.context.payload.commits[0].committer.username !== "web-flow";
+function isVersionAlteredInNonMasterBranch(isReleasableBranch, coreVersionTagMatch) {
+	return !isReleasableBranch && !coreVersionTagMatch && github.context.payload.commits[0].committer.username !== "web-flow";
 }
 
 function checkMergeFromReleaseBranch(lastComment, branch) {
@@ -78,7 +78,7 @@ function checkMergeFromReleaseBranch(lastComment, branch) {
 			.filter(x => x).length > 0;
 	console.log("Is last comment merge: ", isLastCommentMerge);
 
-	return isLastCommentMerge || branch.startsWith("master"); //branch.startsWith("merge/") || branch.startsWith("hotfix/");
+	return isLastCommentMerge || branch.startsWith("merge/") || branch.startsWith("hotfix/");
 }
 
 function getLastVersionFromTags(tags) {
