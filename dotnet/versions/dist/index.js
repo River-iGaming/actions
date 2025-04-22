@@ -31147,15 +31147,16 @@ try {
 
 function generateVersionString(branch, version, runNumber) {
 	if (["master", "main", "master-testing"].includes(branch)) {
-		return generateFinalVersionName(version, "dev", runNumber);
+		//return generateFinalVersionName(version, "dev", runNumber);
+		return version;
 	}
 
 	if (branch.startsWith("feature") || branch.startsWith("hotfix")) {
-		return generateFinalVersionName(version, "demo-" + normalizeBranchName(branch, true), runNumber);
+		return generateFinalVersionName(version, "dev-" + normalizeBranchName(branch, true), runNumber);
 	}
 
 	if (branch.startsWith("release")) {
-		return version;
+		return generateFinalVersionName(version, "rc", runNumber);
 	}
 
 	return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
