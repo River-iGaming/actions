@@ -33668,7 +33668,7 @@ try {
 		throw `Tag v${version} already exists`;
 	}
 
-	const isVersionAlterableBranch = branch.startsWith("master") || branch.startsWith("main") || branch.startsWith("release");
+	const isVersionAlterableBranch = branch.startsWith("master") || branch.startsWith("main");
 	const coreVersionTagMatch = tags.find(x => x.indexOf(packageVersion) > -1);
 	const lastComment = Object.values(github.context.payload.commits).sort((a, b) =>
 		a.timestamp < b.timestamp ? 0 : -1,
@@ -33680,7 +33680,7 @@ try {
 	console.log(`Core version tag matched: ${coreVersionTagMatch}`);
 
 	const isReleaseBranchMergeToMaster = checkMergeFromReleaseBranch(lastComment, branch);
-	if (isVersionAlteredInNonMasterBranch(isVersionAlterableBranch, coreVersionTagMatch) && !isReleaseBranchMergeToMaster) {
+	if (isVersionAlteredInNonReleasableBranch(isVersionAlterableBranch, coreVersionTagMatch) && !isReleaseBranchMergeToMaster) {
 		throw `Version was altered in a non release branch`;
 	}
 
@@ -33704,7 +33704,8 @@ try {
 	core.setFailed(error);
 }
 
-function isVersionAlteredInNonMasterBranch(isReleasableBranch, coreVersionTagMatch) {
+function isVersionAlteredInNonReleasableBranch(isReleasableBranch, coreVersionTagMatch) {
+	// non-releasable branches are: master, main
 	return !isReleasableBranch && !coreVersionTagMatch && github.context.payload.commits[0].committer.username !== "web-flow";
 }
 
