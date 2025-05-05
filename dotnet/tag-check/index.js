@@ -31,38 +31,31 @@ try {
 		throw `Tag v${version} already exists`;
 	}
 
-	const isVersionAlterableBranch = branch.startsWith("master") || branch.startsWith("main");
+	const isVersionAlterableBranchBranch = branch.startsWith("release") || branch.startsWith("master");
 	const coreVersionTagMatch = tags.find(x => x.indexOf(packageVersion) > -1);
+	const lastStableVersionTagMatch = getLastStableVersionFromTags(tags);
+
 	const lastComment = Object.values(github.context.payload.commits).sort((a, b) =>
 		a.timestamp < b.timestamp ? 0 : -1,
 	)[0]?.message;
 
-	console.log("commits: " + JSON.stringify(github.context.payload.commits));
-
 	console.log(`Last comment: ${lastComment}`);
 	console.log(`Core version tag matched: ${coreVersionTagMatch}`);
 
-	const isReleaseBranchMergeToMaster = checkMergeFromReleaseBranch(lastComment, branch);
-	if (isVersionAlteredInNonReleasableBranch(isVersionAlterableBranch, coreVersionTagMatch) && !isReleaseBranchMergeToMaster) {
-		throw `Version was altered in a non release branch`;
+	if(!isVersionAlterableBranchBranch && !coreVersionTagMatch) {
+		throw `Version ${version} was altered in a non-version alterable branch. This can only be done in release branches or when merging to master.`;
 	}
 
-	if (isReleaseBranchMergeToMaster) {
-		console.log(`Release branch merge detected. Checking for valid version...`);
+	if (isVersionAlterableBranchBranch) {
+		const versionDiff = semver.diff(lastStableVersionTagMatch, version);
+		const isGreater = semver.gt(version, lastStableVersionTagMatch);
 
-		const semVersion = semver.parse(version);
-		const lastVersionTag = getLastVersionFromTags(tags);
-
-		console.log(`Last version tag: ${lastVersionTag}`);
-
-		if (tags.length > 0 && !lastVersionTag) {
-			throw `No semver version found in tags`;
-		}
-
-		if (tags.length > 0 && lastVersionTag.prerelease.length == 0 && lastVersionTag.compareMain(semVersion) == 1) {
-			throw `Version is smaller than the previous version`;
+		if (isVersionAlterableBranchBranch && !isGreater && versionDiff !== "patch" && versionDiff !== "minor" && versionDiff !== "major") {
+			throw `Version ${version} is smaller than the current released version ${lastStableVersionTagMatch}`;
 		}
 	}
+
+	console.log("✅ All checks passed successfully!");
 } catch (error) {
 	core.setFailed(error);
 }
