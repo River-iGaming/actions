@@ -75,11 +75,11 @@ function checkMergeFromReleaseBranch(lastComment, branch) {
 	return isLastCommentMerge || branch.startsWith("merge/") || branch.startsWith("hotfix/");
 }
 
-function getLastVersionFromTags(tags) {
+function getLastStableVersionFromTags(tags) {
 	let tagFound = undefined;
 	for (let i = tags.length - 1; i >= 0; i--) {
 		const semvered = semver.parse(tags[i]);
-		if (semvered) {
+		if (semvered && semvered.prerelease.length == 0) {
 			tagFound = semvered;
 			break;
 		}
