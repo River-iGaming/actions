@@ -41,16 +41,23 @@ try {
 
 	console.log(`Last comment: ${lastComment}`);
 	console.log(`Core version tag matched: ${coreVersionTagMatch}`);
+	console.log(`Latest stable version tag matched: ${lastStableVersionTagMatch}`);
+
+	const isVersionCheckOverride = checkMergeFromReleaseBranch(lastComment, branch);
+	if (isVersionCheckOverride) {
+		console.log("✅ All checks passed successfully!");
+		return;
+	}
 
 	if(!isVersionAlterableBranchBranch && !coreVersionTagMatch) {
-		throw `Version ${version} was altered in a non-version alterable branch. This can only be done in release branches or when merging to master.`;
+		throw `Version ${version} was altered in a non-version alterable branch. This can only be done in release branches.`;
 	}
 
 	if (isVersionAlterableBranchBranch) {
 		const versionDiff = semver.diff(lastStableVersionTagMatch, version);
 		const isGreater = semver.gt(version, lastStableVersionTagMatch);
 
-		if (isVersionAlterableBranchBranch && !isGreater && versionDiff !== "patch" && versionDiff !== "minor" && versionDiff !== "major") {
+		if (!isGreater && versionDiff !== "patch" && versionDiff !== "minor" && versionDiff !== "major") {
 			throw `Version ${version} is smaller than the current released version ${lastStableVersionTagMatch}`;
 		}
 	}
