@@ -33719,7 +33719,7 @@ function checkMergeFromReleaseBranch(lastComment, branch) {
 }
 
 function getLastStableVersionFromTags(tags) {
-	const stableTags = tags.filter(x => semver.parse(x).prerelease.length === 0);
+	const stableTags = tags.filter(x => semver.parse(x)?.prerelease.length === 0);
 	const tagFound = semver.rsort(stableTags)[0];
 	return tagFound;
 }
