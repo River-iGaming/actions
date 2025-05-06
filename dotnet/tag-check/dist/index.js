@@ -33694,7 +33694,7 @@ try {
 		const versionDiff = semver.diff(lastStableVersionTagMatch, version);
 		const isGreater = semver.gt(version, lastStableVersionTagMatch);
 
-		if (!isGreater && versionDiff !== "patch" && versionDiff !== "minor" && versionDiff !== "major") {
+		if (!isGreater || (versionDiff !== "patch" && versionDiff !== "minor" && versionDiff !== "major")) {
 			throw `Version ${version} is smaller than the current released version ${lastStableVersionTagMatch}`;
 		}
 	}
@@ -33714,21 +33714,13 @@ function checkMergeFromReleaseBranch(lastComment, branch) {
 		["chore(*): merge release/", "chore(*): version bump manual intervention", "version bump"]
 			.map(x => lastComment?.indexOf(x) > -1)
 			.filter(x => x).length > 0;
-	console.log("Is last comment merge: ", isLastCommentMerge);
 
 	return isLastCommentMerge || branch.startsWith("merge/") || branch.startsWith("hotfix/");
 }
 
 function getLastStableVersionFromTags(tags) {
-	let tagFound = undefined;
-	for (let i = tags.length - 1; i >= 0; i--) {
-		const semvered = semver.parse(tags[i]);
-		if (semvered && semvered.prerelease.length == 0) {
-			tagFound = semvered;
-			break;
-		}
-	}
-
+	const stableTags = tags.filter(x => semver.parse(x).prerelease.length === 0);
+	const tagFound = semver.rsort(stableTags)[0];
 	return tagFound;
 }
 
