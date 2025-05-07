@@ -156,20 +156,6 @@ runs:
           echo "DOCKER_COMPOSE_FILE=`pwd`/docker-compose.yml" >> $GITHUB_ENV
         fi
 
-    - name: Load docker-compose file
-      working-directory: ${{ inputs.path }}
-      shell: bash
-      run: |
-        echo "::notice:: Loading $DOCKER_COMPOSE_FILE compose file"
-        
-        cat $DOCKER_COMPOSE_FILE
-        
-        echo "===="
-        echo "Extracting list of services to build."
-        
-        SERVICES=$(cat $DOCKER_COMPOSE_FILE | yq eval '.services | keys' -P | sed 's/- //')
-        echo "SERVICES=$SERVICES" >> $GITHUB_ENV
-
     - name: Start Build
       id: build
       run: |
@@ -226,11 +212,22 @@ runs:
         }
         
         function exe() { echo "\$ $@" ; "$@" ; }
-
+        
+        
+        # load docker compose file
+        echo "::notice:: Loading $DOCKER_COMPOSE_FILE compose file"
+        
+        echo "===="
+        cat $DOCKER_COMPOSE_FILE        
+        echo "===="
+        echo "Extracting list of services to build."
+        
+        SERVICES=$(cat $DOCKER_COMPOSE_FILE | yq eval '.services | keys' -P | sed 's/- //')
+        
         RENDERED_COMPOSE_FILE="/tmp/rendered-compose.yaml"
 
         echo "=== Diagnostics ==="
-        echo "SERVICES=$SERVICES"
+        env
 
         # start build loop
         DID_BUILD=0
