@@ -43,7 +43,7 @@ try {
 	console.log(`Core version tag matched: ${coreVersionTagMatch}`);
 	console.log(`Latest stable version tag matched: ${lastStableVersionTagMatch}`);
 
-	const isVersionCheckOverride = checkMergeFromReleaseBranch(lastComment, branch);
+	const isVersionCheckOverride = shouldOverrideChecks(lastComment, branch);
 	if (isVersionCheckOverride) {
 		console.log("✅ All checks passed successfully!");
 		return;
@@ -57,7 +57,7 @@ try {
 		const versionDiff = semver.diff(lastStableVersionTagMatch, version);
 		const isGreater = semver.gt(version, lastStableVersionTagMatch);
 
-		if (!isGreater || (versionDiff !== "patch" && versionDiff !== "minor" && versionDiff !== "major")) {
+		if (!isGreater || versionDiff === "prerelease") {
 			throw `Version ${version} is smaller than the current released version ${lastStableVersionTagMatch}`;
 		}
 	}
@@ -72,7 +72,7 @@ function isVersionAlteredInNonReleasableBranch(isReleasableBranch, coreVersionTa
 	return !isReleasableBranch && !coreVersionTagMatch && github.context.payload.commits[0].committer.username !== "web-flow";
 }
 
-function checkMergeFromReleaseBranch(lastComment, branch) {
+function shouldOverrideChecks(lastComment, branch) {
 	const isLastCommentMerge =
 		["chore(*): merge release/", "chore(*): version bump manual intervention", "version bump"]
 			.map(x => lastComment?.indexOf(x) > -1)
