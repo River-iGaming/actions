@@ -8,6 +8,7 @@ inputs:
   path:
     description: 'Directory containing the Docker and docker-compose files'
     required: true
+    default: '.'
   registry:
     description: 'Registry URI where to publish the docker images'
     required: true
@@ -131,7 +132,6 @@ runs:
         
         echo "::notice:: Using compose file supplied from inputs." 
         echo "DOCKER_COMPOSE_FILE=/tmp/docker-compose.build.yml" >> $GITHUB_ENV
-        
 
     - name: Use in-repo docker-compose file, if available, otherwise generate single use file
       working-directory: ${{ inputs.path }}
@@ -158,6 +158,7 @@ runs:
 
     - name: Start Build
       id: build
+      working-directory: ${{ inputs.path }}
       run: |
         #! /bin/bash
 
@@ -302,11 +303,11 @@ runs:
           echo "${service} - Building image with tag '"${IMAGE_TAG}"'"
 
           exe docker buildx build $BUILD_ARGS $PLATFORM_ARGS -t ${IMAGE_TAG} -f ${DOCKER_FILE} --progress plain ${PUSH_ARG} .
-          echo "${service} - Build complete"
+          echo "${service} - Build complete"          
+          echo "::notice::DockerRepoAndTag: $IMAGE_TAG"
 
           # outputs
           echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
         done
-      working-directory: ${{ inputs.path }}
       shell: bash
 
