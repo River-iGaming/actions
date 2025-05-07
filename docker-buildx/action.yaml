@@ -129,7 +129,7 @@ runs:
         ${{ inputs.compose }}
         EOL
         
-        echo "::notice:: Using supplied compose file." 
+        echo "::notice:: Using compose file supplied from inputs." 
         echo "DOCKER_COMPOSE_FILE=/tmp/docker-compose.build.yml" >> $GITHUB_ENV
         
 
@@ -160,7 +160,7 @@ runs:
       working-directory: ${{ inputs.path }}
       shell: bash
       run: |
-        echo "::notice:: Using $DOCKER_COMPOSE_FILE compose file"
+        echo "::notice:: Loading $DOCKER_COMPOSE_FILE compose file"
         
         cat $DOCKER_COMPOSE_FILE
         
