@@ -7,7 +7,7 @@ inputs:
     required: false
     default: 'master'
   semver:
-    description: 'Semver version bump type (patch, minor, major)'
+    description: 'Semver version bump type (major, minor, patch)'
     required: false
     default: 'patch'
   package_path:
