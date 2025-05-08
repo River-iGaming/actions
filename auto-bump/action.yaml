@@ -14,10 +14,10 @@ inputs:
     description: 'Path to package.json directory'
     required: false
     default: './'
-  commit:
+  skipcp:
     description: 'Whether to commit and push the bumped version'
     required: false
-    default: 'true'
+    default: 'false'
   node-version:
     description: 'Node.js version to use'
     required: false
@@ -84,7 +84,7 @@ runs:
 
     - name: Commit and push version bump
       shell: bash
-      if: steps.skip-check.outputs.skip == 'false' && inputs.commit == 'true'
+      if: steps.skip-check.outputs.skip == 'false' && inputs.skipcp == 'false'
       working-directory: ${{ inputs.package_path }}
       run: |
         git config user.email "deploy-bot@riverigaming.com"
