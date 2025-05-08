@@ -7,7 +7,7 @@ inputs:
     required: false
     default: 'master'
   semver:
-    description: 'Semver version bump type (patch, minor, major)'
+    description: 'Semver version bump type (major, minor, patch)'
     required: false
     default: 'patch'
   package_path:
@@ -68,18 +68,11 @@ runs:
         current_version=$(jq -r '.version' package.json)
         echo "Current version: $current_version"
 
-        IFS='.' read -r major minor patch <<< "$current_version"
-        case "${{ inputs.semver }}" in
-          patch) patch=$((patch + 1));;
-          minor) minor=$((minor + 1)); patch=0;;
-          major) major=$((major + 1)); minor=0; patch=0;;
-          *) echo "Invalid semver input"; exit 1;;
-        esac
+        npm version --no-git-tag-version ${{ inputs.semver }}
 
-        new_version="$major.$minor.$patch"
+        new_version=$(jq -r '.version' package.json)
         echo "New version: $new_version"
 
-        jq ".version = \"$new_version\"" package.json > package.tmp.json && mv package.tmp.json package.json
         echo "new_version=$new_version" >> $GITHUB_OUTPUT
 
     - name: Commit and push version bump
