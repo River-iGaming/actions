@@ -18,10 +18,10 @@ inputs:
     description: 'Whether to commit and push the bumped version'
     required: false
     default: 'true'
-  do-checkout:
+  skip-checkout:
     description: 'Whether to checkout the target branch'
     required: false
-    default: 'true'
+    default: 'false'
   node-version:
     description: 'Node.js version to use'
     required: false
@@ -39,7 +39,7 @@ runs:
   using: 'composite'
   steps:
     - name: Checkout target branch
-      if: inputs.do-checkout == 'true'
+      if: inputs.skip-checkout == 'false'
       uses: actions/checkout@v4
       with:
         fetch-depth: 2
