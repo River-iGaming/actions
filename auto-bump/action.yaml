@@ -38,8 +38,20 @@ outputs:
 runs:
   using: 'composite'
   steps:
+    - name: Check if current branch matches target
+      id: check-branch
+      shell: bash
+      run: |
+        CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        echo "Current branch is: $CURRENT_BRANCH"
+        if [[ "$CURRENT_BRANCH" == "${{ inputs.branch }}" ]]; then
+          echo "do-checkout=false" >> $GITHUB_OUTPUT
+        else
+          echo "do-checkout=true" >> $GITHUB_OUTPUT
+        fi
+
     - name: Checkout target branch
-      if: inputs.do-checkout == 'true'
+      if: steps.check-branch.outputs.do-checkout == 'true' && inputs.do-checkout == 'true'
       uses: actions/checkout@v4
       with:
         fetch-depth: 2
