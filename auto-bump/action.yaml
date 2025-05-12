@@ -14,6 +14,14 @@ inputs:
     description: 'Path to package.json directory'
     required: false
     default: './'
+  include-commit:
+    description: 'Whether to commit and push the bumped version'
+    required: false
+    default: 'true'
+  skip-checkout:
+    description: 'Whether to checkout the target branch'
+    required: false
+    default: 'false'
   node-version:
     description: 'Node.js version to use'
     required: false
@@ -31,6 +39,7 @@ runs:
   using: 'composite'
   steps:
     - name: Checkout target branch
+      if: inputs.skip-checkout == 'false'
       uses: actions/checkout@v4
       with:
         fetch-depth: 2
@@ -73,7 +82,7 @@ runs:
 
     - name: Commit and push version bump
       shell: bash
-      if: steps.skip-check.outputs.skip == 'false'
+      if: inputs.include-commit == 'true' && steps.skip-check.outputs.skip == 'false'
       working-directory: ${{ inputs.package_path }}
       run: |
         git config user.email "deploy-bot@riverigaming.com"
