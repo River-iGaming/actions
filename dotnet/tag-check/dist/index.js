@@ -33668,69 +33668,61 @@ try {
 		throw `Tag v${version} already exists`;
 	}
 
-	const isReleaseBranch = branch.startsWith("release");
+	const isVersionAlterableBranchBranch = branch.startsWith("release") || branch.startsWith("master");
 	const coreVersionTagMatch = tags.find(x => x.indexOf(packageVersion) > -1);
+	const lastStableVersionTagMatch = getLastStableVersionFromTags(tags);
+
 	const lastComment = Object.values(github.context.payload.commits).sort((a, b) =>
 		a.timestamp < b.timestamp ? 0 : -1,
 	)[0]?.message;
 
-	console.log("commits: "+ JSON.stringify(github.context.payload.commits));
-
 	console.log(`Last comment: ${lastComment}`);
 	console.log(`Core version tag matched: ${coreVersionTagMatch}`);
+	console.log(`Latest stable version tag matched: ${lastStableVersionTagMatch}`);
 
-	const isReleaseBranchMerge = checkMergeFromReleaseBranch(lastComment, branch);
-	if (isVersionAlteredInNonReleaseBranch(isReleaseBranch, coreVersionTagMatch) && !isReleaseBranchMerge) {
-		throw `Version was altered in a non release branch`;
+	const isVersionCheckOverride = shouldOverrideChecks(lastComment, branch);
+	if (isVersionCheckOverride) {
+		console.log("✅ All checks passed successfully!");
+		return;
 	}
 
-	if (isReleaseBranchMerge) {
-		console.log(`Release branch merge detected. Checking for valid version...`);
+	if(!isVersionAlterableBranchBranch && !coreVersionTagMatch) {
+		throw `Version ${version} was altered in a non-version alterable branch. This can only be done in release branches.`;
+	}
 
-		const semVersion = semver.parse(version);
-		const lastVersionTag = getLastVersionFromTags(tags);
+	if (isVersionAlterableBranchBranch) {
+		const versionDiff = semver.diff(lastStableVersionTagMatch, version);
+		const isGreater = semver.gt(version, lastStableVersionTagMatch);
 
-		console.log(`Last version tag: ${lastVersionTag}`);
-
-		if(tags.length > 0 && !lastVersionTag){
-			throw `No semver version found in tags`;
-		}
-
-		if (tags.length > 0 && lastVersionTag.prerelease.length == 0 && lastVersionTag.compareMain(semVersion) == 1){
-			throw `Version is smaller than the previous version`;
+		if (!isGreater || versionDiff === "prerelease") {
+			throw `Version ${version} is smaller than the current released version ${lastStableVersionTagMatch}`;
 		}
 	}
+
+	console.log("✅ All checks passed successfully!");
 } catch (error) {
 	core.setFailed(error);
 }
 
-function isVersionAlteredInNonReleaseBranch(isReleaseBranch, coreVersionTagMatch) {
-	return !isReleaseBranch && !coreVersionTagMatch && github.context.payload.commits[0].committer.username !== "web-flow";
+function isVersionAlteredInNonReleasableBranch(isReleasableBranch, coreVersionTagMatch) {
+	// non-releasable branches are: master, main
+	return !isReleasableBranch && !coreVersionTagMatch && github.context.payload.commits[0].committer.username !== "web-flow";
 }
 
-function checkMergeFromReleaseBranch(lastComment, branch) {
+function shouldOverrideChecks(lastComment, branch) {
 	const isLastCommentMerge =
-		["chore(*): merge release/MW-", "chore(*): version bump manual intervention", "version bump"]
+		["chore(*): merge release/", "chore(*): version bump manual intervention", "version bump"]
 			.map(x => lastComment?.indexOf(x) > -1)
 			.filter(x => x).length > 0;
-	console.log("Is last comment merge: ", isLastCommentMerge);
 
 	return isLastCommentMerge || branch.startsWith("merge/") || branch.startsWith("hotfix/");
 }
 
-function getLastVersionFromTags(tags) {
-	let tagFound = undefined;
-	for (let i = tags.length - 1; i >= 0; i--) {
-		const semvered = semver.parse(tags[i]);
-		if (semvered) {
-			tagFound = semvered;
-			break;
-		}
-	}
-
+function getLastStableVersionFromTags(tags) {
+	const stableTags = tags.filter(x => semver.parse(x)?.prerelease.length === 0);
+	const tagFound = semver.rsort(stableTags)[0];
 	return tagFound;
 }
-
 })();
 
 module.exports = __webpack_exports__;
