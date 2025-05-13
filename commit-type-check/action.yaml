@@ -1,0 +1,74 @@
+name: Check Commit Type
+description: Verifies whether a merge is allowed based on commit message type.
+
+inputs:
+  commit-types:
+    description: 'List of allowed commit types'
+    required: true
+    default: |
+      feat
+      fix
+      release
+  github-token:
+    description: 'GitHub token (required for checkout)'
+    required: true
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '22'
+
+outputs:
+  merge-allowed:
+    description: 'true if merge is allowed, false otherwise'
+    value: ${{ steps.check.outputs.merge-allowed }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+        token: ${{ inputs.github-token }}
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Check Merge Conditions
+      id: check
+      shell: bash
+      run: |
+        result=true
+        COMMIT_TYPE_MATCHED=false
+
+        readarray -t COMMIT_TYPES <<< "${{ inputs.commit-types }}"
+        COMMIT_TYPES=($(printf "%s\n" "${COMMIT_TYPES[@]}" | sed '/^\s*$/d'))
+        COMMIT_MESSAGE="$(git log -1 --pretty=%B)"
+        echo "Commit message: $COMMIT_MESSAGE"
+
+        # Match commit type
+        for type in "${COMMIT_TYPES[@]}"; do
+          if [[ "$COMMIT_MESSAGE" == "$type"* ]]; then
+            echo "::notice::✅ Matched commit type: $type"
+            COMMIT_TYPE_MATCHED=true
+            break
+          fi
+        done
+
+        if [ "$COMMIT_TYPE_MATCHED" = false ]; then
+          ALLOWED_TYPES=$(IFS=", "; echo "${COMMIT_TYPES[*]}")
+          echo "::error::❌ No commit types matched \"$COMMIT_MESSAGE\" | Allowed types: [$ALLOWED_TYPES]"
+          result=false
+        fi
+
+        # Check package version for pre-release or metadata
+        PACKAGE_VERSION=$(jq -r '.version' package.json)
+        echo "Detected version: $PACKAGE_VERSION"
+        if [[ "$PACKAGE_VERSION" == *"-"* || "$PACKAGE_VERSION" == *"+"* ]]; then
+          echo "::error::❌ Merge not allowed for prerelease or metadata versions."
+          result=false
+        fi
+
+        echo "merge-allowed=$result" >> $GITHUB_OUTPUT
