@@ -1,0 +1,127 @@
+name: Merge Branch With Conflict Resolution
+description: Merges a source branch into a target branch and auto-resolves version file conflicts.
+
+inputs:
+  source-branch:
+    description: 'Branch to merge from'
+    required: true
+  target-branch:
+    description: 'Branch to merge into'
+    required: true
+  github-token:
+    description: 'GitHub token with write permissions'
+    required: true
+  version-files:
+    description: 'Comma-separated list of version files (e.g., package.json)'
+    required: false
+    default: |
+      package.json
+  include-commit:
+    description: 'Whether to commit and push the bumped version'
+    required: false
+    default: 'true'
+  skip-checkout:
+    description: 'Whether to checkout the target branch'
+    required: false
+    default: 'false'
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '22'
+
+outputs:
+  manual-merge:
+    description: 'true if manual merge is required due to unresolvable conflicts'
+    value: ${{ steps.merge.outputs.manual-merge }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout full history
+      if: inputs.skip-checkout == 'false'
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+        token: ${{ inputs.github-token }}
+        ref: ${{ inputs.target-branch }}
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Merge source into target with auto-resolve
+      id: merge
+      shell: bash
+      run: |
+        git fetch --all
+        git config user.email "deploy-bot@riverigaming.com"
+        git config user.name "rig-autobot"
+
+        SOURCE_BRANCH="${{ inputs.source-branch }}"
+        TARGET_BRANCH="${{ inputs.target-branch }}"
+        VERSION_FILES="${{ inputs.version-files }}"
+        IFS=',' read -ra VERSION_FILE_LIST <<< "$VERSION_FILES"
+
+        echo "::notice::Merging $SOURCE_BRANCH → $TARGET_BRANCH"
+        git checkout "$TARGET_BRANCH"
+
+        MANUAL_MERGE=false
+
+        if git merge --no-commit --no-ff --no-edit "$SOURCE_BRANCH"; then
+          echo "::notice::Clean merge succeeded"
+        else
+          CONFLICTS=$(git diff --name-only --diff-filter=U)
+          echo "::warning::Merge conflicts detected: $CONFLICTS"
+
+          for file in $CONFLICTS; do
+            IS_VERSION_FILE=false
+            for vfile in "${VERSION_FILE_LIST[@]}"; do
+              if [[ "$file" == "$vfile" ]]; then
+                IS_VERSION_FILE=true
+                break
+              fi
+            done
+
+            if [[ "$IS_VERSION_FILE" == true ]]; then
+              echo "::notice::Attempting to auto-resolve version conflict in $file"
+
+              CONFLICT_CONTENT=$(awk '/^<<<<<<< HEAD/,/^>>>>>>>/' "$file" || true)
+              NON_VERSION_LINES=$(echo "$CONFLICT_CONTENT" | \
+                grep -vE '<<<<<<<|=======|>>>>>>>' | \
+                grep -vE '^\s*"version"\s*:' || true)
+
+              if [[ -n "$NON_VERSION_LINES" ]]; then
+                echo "::error::Unresolvable conflict in $file (non-version content). Manual merge required."
+                git merge --abort || true
+                MANUAL_MERGE=true
+                break
+              fi
+
+              git checkout --ours "$file"
+              git add "$file"
+              echo "::notice::Auto-resolved $file"
+            else
+              echo "::error::Conflict in $file is not auto-resolvable. Manual merge required."
+              git merge --abort || true
+              MANUAL_MERGE=true
+              break
+            fi
+          done
+
+          if [[ "$MANUAL_MERGE" == false ]]; then
+            git commit -m "chore(*): auto-resolve version conflict"
+          fi
+        fi
+
+        # Output the result
+        echo "manual-merge=$MANUAL_MERGE" >> $GITHUB_OUTPUT
+
+    - name: Push merged branch
+      if: inputs.include-commit == 'true' && steps.merge.outputs.manual-merge != 'true'
+      shell: bash
+      run: |
+        echo "::notice::Pushing ${{ inputs.target-branch }}"
+        git push origin "${{ inputs.target-branch }}"
+
+
