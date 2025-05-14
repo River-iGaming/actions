@@ -12,10 +12,6 @@ inputs:
   github-token:
     description: 'GitHub token (required for checkout)'
     required: true
-  node-version:
-    description: 'Node.js version to use'
-    required: false
-    default: '22'
 
 outputs:
   merge-allowed:
@@ -30,11 +26,6 @@ runs:
       with:
         fetch-depth: 2
         token: ${{ inputs.github-token }}
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ inputs.node-version }}
 
     - name: Check Merge Conditions
       id: check
