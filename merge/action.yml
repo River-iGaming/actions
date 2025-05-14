@@ -69,13 +69,13 @@ runs:
           CONFLICTS=$(git diff --name-only --diff-filter=U)
           echo "::warning::Conflicts: $CONFLICTS"
 
+          readarray -t VERSION_FILES <<< "${{ inputs.version-files }}"
+          VERSION_FILES=($(printf "%s\n" "${VERSION_FILES[@]}" | sed '/^\s*$/d'))
+
           for file in $CONFLICTS; do
             IS_VERSION_FILE=false
-            
-            readarray -t VERSION_FILES <<< "${{ inputs.version-files }}"
-            VERSION_FILES=($(printf "%s\n" "${VERSION_FILES[@]}" | sed '/^\s*$/d'))
 
-            for vfile in "${VERSION_FILE_LIST[@]}"; do
+            for vfile in "${VERSION_FILES[@]}"; do
               if [[ "$file" == "$vfile" ]]; then
                 IS_VERSION_FILE=true
                 break
