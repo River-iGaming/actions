@@ -17,10 +17,6 @@ inputs:
     description: 'Whether to commit and push the merged branch'
     required: false
     default: 'true'
-  skip-checkout:
-    description: 'Whether to checkout the target branch'
-    required: false
-    default: 'false'
   github-token:
     description: 'GitHub token with write permissions'
     required: true
@@ -37,7 +33,6 @@ runs:
   using: 'composite'
   steps:
     - name: Checkout full history
-      if: inputs.skip-checkout == 'false'
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
@@ -83,7 +78,7 @@ runs:
             done
 
             if [[ "$IS_VERSION_FILE" == true ]]; then
-              echo "::notice::Auto-resolving $file version conflicts."
+              echo "::notice::⚠️ Auto-resolving $file version conflicts."
               git checkout --ours "$file"
               git add "$file"
               AUTO_RESOLVED=true
