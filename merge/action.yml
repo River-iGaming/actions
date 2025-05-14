@@ -42,7 +42,7 @@ runs:
       with:
         fetch-depth: 0
         token: ${{ inputs.github-token }}
-        ref: ${{ inputs.target-branch }}
+        ref: ${{ inputs.source-branch }}
 
     - name: Merge source into target with auto-resolve
       id: merge
@@ -54,10 +54,10 @@ runs:
 
         SOURCE_BRANCH="${{ inputs.source-branch }}"
         TARGET_BRANCH="${{ inputs.target-branch }}"
-        
-        # git checkout "$TARGET_BRANCH"
         MANUAL_MERGE=false
         AUTO_RESOLVED=false
+
+        git checkout "$TARGET_BRANCH"
 
         echo "::notice::Merging branch: $SOURCE_BRANCH into: $TARGET_BRANCH"
 
