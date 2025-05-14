@@ -28,7 +28,7 @@ runs:
         fetch-depth: 2
         token: ${{ inputs.github-token }}
 
-    - name: Check Merge Conditions
+    - name: Check commit type
       id: check
       shell: bash
       run: |
