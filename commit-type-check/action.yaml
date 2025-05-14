@@ -14,9 +14,9 @@ inputs:
     default: 'false'
 
 outputs:
-  merge-allowed:
+  commit-type-allowed:
     description: 'true if merge is allowed, false otherwise'
-    value: ${{ steps.check.outputs.merge-allowed }}
+    value: ${{ steps.check.outputs.commit-type-allowed }}
 
 runs:
   using: 'composite'
@@ -32,7 +32,7 @@ runs:
       id: check
       shell: bash
       run: |
-        result=true
+        COMMIT_TYPE_ALLOWED=true
         COMMIT_TYPE_MATCHED=false
 
         readarray -t COMMIT_TYPES <<< "${{ inputs.commit-types }}"
@@ -52,15 +52,7 @@ runs:
         if [ "$COMMIT_TYPE_MATCHED" = false ]; then
           ALLOWED_TYPES=$(IFS=", "; echo "${COMMIT_TYPES[*]}")
           echo "::error::❌ No commit types matched \"$COMMIT_MESSAGE\" | Allowed types: [$ALLOWED_TYPES]"
-          result=false
+          COMMIT_TYPE_ALLOWED=false
         fi
 
-        # Check package version for pre-release or metadata
-        PACKAGE_VERSION=$(jq -r '.version' package.json)
-        echo "Detected version: $PACKAGE_VERSION"
-        if [[ "$PACKAGE_VERSION" == *"-"* || "$PACKAGE_VERSION" == *"+"* ]]; then
-          echo "::error::❌ Merge not allowed for prerelease or metadata versions."
-          result=false
-        fi
-
-        echo "merge-allowed=$result" >> $GITHUB_OUTPUT
+        echo "commit-type-allowed=$COMMIT_TYPE_ALLOWED" >> $GITHUB_OUTPUT
