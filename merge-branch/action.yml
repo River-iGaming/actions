@@ -1,4 +1,4 @@
-name: Merge Branch With Conflict Resolution
+name: Merge Branch
 description: Merges a source branch into a target branch and auto-resolves version file conflicts.
 
 inputs:
