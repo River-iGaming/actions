@@ -1,5 +1,4 @@
 name: Merge Branch With Conflict Resolution
-
 description: Merges a source branch into a target branch and auto-resolves version file conflicts.
 
 inputs:
@@ -26,11 +25,13 @@ inputs:
     description: 'GitHub token with write permissions'
     required: true
 
-
 outputs:
   manual-merge:
     description: 'true if manual merge is required due to unresolvable conflicts'
     value: ${{ steps.merge.outputs.manual-merge }}
+  auto-resolved:
+    description: 'true if conflicts were auto-resolved'
+    value: ${{ steps.merge.outputs.auto-resolved }}
 
 runs:
   using: 'composite'
