@@ -71,8 +71,9 @@ runs:
 
           for file in $CONFLICTS; do
             IS_VERSION_FILE=false
-            VERSION_FILES="${{ inputs.version-files }}"
-            IFS=',' read -ra VERSION_FILE_LIST <<< "$VERSION_FILES"
+            
+            readarray -t VERSION_FILES <<< "${{ inputs.version-files }}"
+            VERSION_FILES=($(printf "%s\n" "${VERSION_FILES[@]}" | sed '/^\s*$/d'))
 
             for vfile in "${VERSION_FILE_LIST[@]}"; do
               if [[ "$file" == "$vfile" ]]; then
