@@ -86,7 +86,7 @@ runs:
               git add "$file"
               AUTO_RESOLVED=true
             else
-              echo "::error::Conflict in $file cannot be auto-resolved. Aborting merge."
+              echo "::error::❌ Conflict in $file cannot be auto-resolved. Aborting merge."
               git merge --abort
               MANUAL_MERGE=true
               break
@@ -103,10 +103,12 @@ runs:
       run: |
         AUTO_RESOLVED = "${{ steps.merge.outputs.auto-resolved }}"
         if [[ -n "$(git status --porcelain)" ]]; then
-          echo "::notice::Commit and pushing ${{ inputs.target-branch }}"
+          
           if [[ "$AUTO_RESOLVED" == true ]]; then
+            echo "::notice::⚠️ Conflicts auto-resolved, commit and pushing ${{ inputs.target-branch }}"
             git commit -m "chore(*): auto-resolve version conflicts"
           else
+            echo "::notice::✅ Commit and pushing ${{ inputs.target-branch }}"
             git commit --no-edit
           fi
           git push origin "${{ inputs.target-branch }}"
