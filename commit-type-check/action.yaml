@@ -25,7 +25,7 @@ runs:
       if: inputs.skip-checkout == 'false'
       uses: actions/checkout@v4
       with:
-        fetch-depth: 2
+        fetch-depth: 1
         token: ${{ inputs.github-token }}
 
     - name: Check commit type
