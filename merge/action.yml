@@ -103,14 +103,12 @@ runs:
       if: inputs.include-commit == 'true' && steps.merge.outputs.manual-merge == 'false'
       shell: bash
       run: |
-        AUTO_RESOLVED = "${{ steps.merge.outputs.auto-resolved }}"
         if [[ -n "$(git status --porcelain)" ]]; then
-          
-          if [[ "$AUTO_RESOLVED" == true ]]; then
-            echo "::notice::⚠️ Conflicts auto-resolved, commit and pushing ${{ inputs.target-branch }}"
+          if [[ "${{ steps.merge.outputs.auto-resolved }}" == true ]]; then
+            echo "::notice::⚠️ Conflicts auto-resolved, commit and push: ${{ inputs.target-branch }}"
             git commit -m "chore(*): auto-resolve version conflicts"
           else
-            echo "::notice::✅ Commit and pushing ${{ inputs.target-branch }}"
+            echo "::notice::✅ Commit and push to: ${{ inputs.target-branch }}"
             git commit --no-edit
           fi
           git push origin "${{ inputs.target-branch }}"
