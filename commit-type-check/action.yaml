@@ -1,14 +1,10 @@
 name: Check Commit Type
-description: Verifies whether a commit type is allowed.
+description: Verifies whether the previous commit starts with supplied inputs.
 
 inputs:
   commit-types:
     description: 'List of allowed commit types'
     required: true
-    default: |
-      feat
-      fix
-      release
   github-token:
     description: 'GitHub token (required for checkout)'
     required: true
