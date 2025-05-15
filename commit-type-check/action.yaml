@@ -1,17 +1,21 @@
 name: Check Commit Type
-description: Verifies whether a merge is allowed based on commit message type.
+description: Verifies whether a commit type is allowed.
 
 inputs:
   commit-types:
     description: 'List of allowed commit types'
     required: true
+    default: |
+      feat
+      fix
+      release
   github-token:
     description: 'GitHub token (required for checkout)'
     required: true
 
 outputs:
-  commit-type-allowed:
-    description: 'true if merge is allowed, false otherwise'
+  allowed:
+    description: 'true if commit type is allowed, false otherwise'
     value: ${{ steps.check.outputs.commit-type-allowed }}
 
 runs:
@@ -27,8 +31,7 @@ runs:
       id: check
       shell: bash
       run: |
-        COMMIT_TYPE_ALLOWED=true
-        COMMIT_TYPE_MATCHED=false
+        COMMIT_TYPE_ALLOWED=false
 
         readarray -t COMMIT_TYPES <<< "${{ inputs.commit-types }}"
         COMMIT_TYPES=($(printf "%s\n" "${COMMIT_TYPES[@]}" | sed '/^\s*$/d'))
@@ -39,15 +42,13 @@ runs:
         for type in "${COMMIT_TYPES[@]}"; do
           if [[ "$COMMIT_MESSAGE" == "$type"* ]]; then
             echo "::notice::✅ Matched commit type: $type"
-            COMMIT_TYPE_MATCHED=true
+            COMMIT_TYPE_ALLOWED=true
             break
           fi
         done
-
-        if [ "$COMMIT_TYPE_MATCHED" = false ]; then
+        if [ "$COMMIT_TYPE_ALLOWED" = false ]; then
           ALLOWED_TYPES=$(IFS=", "; echo "${COMMIT_TYPES[*]}")
           echo "::error::❌ No commit types matched \"$COMMIT_MESSAGE\" | Allowed types: [$ALLOWED_TYPES]"
-          COMMIT_TYPE_ALLOWED=false
         fi
 
-        echo "commit-type-allowed=$COMMIT_TYPE_ALLOWED" >> $GITHUB_OUTPUT
+        echo "allowed=$COMMIT_TYPE_ALLOWED" >> $GITHUB_OUTPUT
