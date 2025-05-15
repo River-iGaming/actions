@@ -8,11 +8,11 @@ inputs:
   target-branch:
     description: 'Branch to merge into'
     required: true
-  version-files:
-    description: 'List of version files'
-    required: false
-    default: |
-      package.json
+  conflict-auto-keep-files:  
+    description: 'Files where merge conflicts are automatically resolved by keeping the current branch version'  
+    required: false  
+    default: |  
+      package.json 
   include-commit:
     description: 'Whether to commit and push the merged branch'
     required: false
@@ -22,9 +22,9 @@ inputs:
     required: true
 
 outputs:
-  manual-merge:
-    description: 'true if manual merge is required due to unresolvable conflicts'
-    value: ${{ steps.merge.outputs.manual-merge }}
+  merge-failed:
+    description: 'true if merge is required due to unresolvable conflicts'
+    value: ${{ steps.merge.outputs.merge-failed }}
   auto-resolved:
     description: 'true if conflicts were auto-resolved'
     value: ${{ steps.merge.outputs.auto-resolved }}
@@ -49,7 +49,7 @@ runs:
 
         SOURCE_BRANCH="${{ inputs.source-branch }}"
         TARGET_BRANCH="${{ inputs.target-branch }}"
-        MANUAL_MERGE=false
+        MERGE_FAILED=false
         AUTO_RESOLVED=false
 
         git checkout "$TARGET_BRANCH"
@@ -85,17 +85,17 @@ runs:
             else
               echo "::error::❌ Conflict in $file cannot be auto-resolved. Aborting merge."
               git merge --abort
-              MANUAL_MERGE=true
+              MERGE_FAILED=true
               break
             fi
           done
         fi
 
-        echo "manual-merge=$MANUAL_MERGE" >> "$GITHUB_OUTPUT"
+        echo "merge-failed=$MERGE_FAILED" >> "$GITHUB_OUTPUT"
         echo "auto-resolved=$AUTO_RESOLVED" >> "$GITHUB_OUTPUT"
 
     - name: Commit and push merged changes
-      if: inputs.include-commit == 'true' && steps.merge.outputs.manual-merge == 'false'
+      if: inputs.include-commit == 'true' && steps.merge.outputs.merge-failed == 'false'
       shell: bash
       run: |
         if [[ -n "$(git status --porcelain)" ]]; then
