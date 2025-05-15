@@ -1,0 +1,50 @@
+name: Check Commit Type
+description: Verifies whether the previous commit starts with supplied inputs.
+
+inputs:
+  commit-types:
+    description: 'List of allowed commit types'
+    required: true
+  github-token:
+    description: 'GitHub token (required for checkout)'
+    required: true
+
+outputs:
+  allowed:
+    description: 'true if commit type is allowed, false otherwise'
+    value: ${{ steps.check.outputs.allowed }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+        token: ${{ inputs.github-token }}
+
+    - name: Check commit type
+      id: check
+      shell: bash
+      run: |
+        COMMIT_TYPE_ALLOWED=false
+
+        readarray -t COMMIT_TYPES <<< "${{ inputs.commit-types }}"
+        COMMIT_TYPES=($(printf "%s\n" "${COMMIT_TYPES[@]}" | sed '/^\s*$/d'))
+        COMMIT_MESSAGE="$(git log -1 --pretty=%B)"
+        echo "Commit message: $COMMIT_MESSAGE"
+
+        # Match commit type
+        for type in "${COMMIT_TYPES[@]}"; do
+          if [[ "$COMMIT_MESSAGE" == "$type"* ]]; then
+            echo "::notice::✅ Matched commit type: $type"
+            COMMIT_TYPE_ALLOWED=true
+            break
+          fi
+        done
+        if [ "$COMMIT_TYPE_ALLOWED" = false ]; then
+          ALLOWED_TYPES=$(IFS=", "; echo "${COMMIT_TYPES[*]}")
+          echo "::error::❌ No commit types matched \"$COMMIT_MESSAGE\" | Allowed types: [$ALLOWED_TYPES]"
+        fi
+
+        echo "allowed=$COMMIT_TYPE_ALLOWED" >> $GITHUB_OUTPUT
