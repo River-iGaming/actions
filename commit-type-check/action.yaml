@@ -16,7 +16,7 @@ inputs:
 outputs:
   allowed:
     description: 'true if commit type is allowed, false otherwise'
-    value: ${{ steps.check.outputs.commit-type-allowed }}
+    value: ${{ steps.check.outputs.allowed }}
 
 runs:
   using: 'composite'
