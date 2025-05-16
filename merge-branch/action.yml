@@ -70,8 +70,8 @@ runs:
           for file in $CONFLICTS; do
             IS_FILE=false
 
-            for file in "${FILES[@]}"; do
-              if [[ "$file" == "$file" ]]; then
+            for vfile in "${FILES[@]}"; do
+              if [[ "$file" == "$vfile" ]]; then
                 IS_FILE=true
                 break
               fi
