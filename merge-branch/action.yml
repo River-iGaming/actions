@@ -103,7 +103,7 @@ runs:
             git commit -m "chore(*): auto-resolve version conflicts"
           else
             echo "::notice::✅ Commit and push to: ${{ inputs.target-branch }}"
-           git commit -m "chore(*): merged ${{ inputs.source-branch }} in to ${{ inputs.target-branch }}"
+           git commit -m "chore(*): merged ${{ inputs.source-branch }} into ${{ inputs.target-branch }}"
           fi
           git push origin "${{ inputs.target-branch }}"
         fi
