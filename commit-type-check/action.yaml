@@ -34,7 +34,7 @@ runs:
         COMMIT_TYPE_ALLOWED=false
 
         readarray -t COMMIT_TYPES <<< "${{ inputs.commit-types }}"
-        COMMIT_TYPES=($(printf "%s\n" "${COMMIT_TYPES[@]}" | sed '/^\s*$/d'))
+        COMMIT_TYPES=($(printf "\n" "${COMMIT_TYPES[@]}" | sed '/^\s*$/d'))
         COMMIT_MESSAGE="$(git log -1 --pretty=%B)"
         echo "Commit message: $COMMIT_MESSAGE"
 
