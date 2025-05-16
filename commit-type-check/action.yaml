@@ -41,16 +41,13 @@ runs:
 
         # Match using regex
         for type in "${COMMIT_TYPES[@]}"; do
-          # Convert to regex: escape special characters, allow suffix
-          REGEX="^$(printf '%s' "$type" | sed -E 's/[]\/$*.^[]/\\&/g')([[:space:]]|$)"
-          echo "🔍 Checking against regex: $REGEX"
-
-          if [[ "$COMMIT_MESSAGE" =~ $REGEX ]]; then
-            echo "✅ Matched regex: \"$REGEX\""
+          echo "🔍 Checking if commit message matches: \"$type\""
+          if [[ "$COMMIT_MESSAGE" == "$type" ]]; then
+            echo "✅ Exact match found: $type"
             COMMIT_TYPE_ALLOWED=true
             break
           else
-            echo "❌ No match for regex: \"$REGEX\""
+            echo "❌ No exact match for: $type"
           fi
         done
 
