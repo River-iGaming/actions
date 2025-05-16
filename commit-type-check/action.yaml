@@ -47,17 +47,14 @@ runs:
         COMMIT_MESSAGE="$(git log -1 --pretty=%B)"
         echo "📝 Commit message: \"$COMMIT_MESSAGE\""
 
-        # COMMIT_TYPES_CLEAN=()
-        # for type in "${COMMIT_TYPES[@]}"; do
-        #   [[ -n "$type" ]] && COMMIT_TYPES_CLEAN+=("$type")
-        # done
-
         echo "🔍 Checking if commit types N - \"$COMMIT_TYPES\""
 
         # Match using regex
         for type in "${COMMIT_TYPES[@]}"; do
           echo "🔍 Checking if commit message matches: \"$type\" - \"$COMMIT_MESSAGE\""
-          if [[ "$COMMIT_MESSAGE" == "$type" ]]; then
+          [[ -z "$type" ]] && continue
+
+          if [[ "$COMMIT_MESSAGE" == "$type"* ]]; then
             echo "✅ Exact match found: $type"
             COMMIT_TYPE_ALLOWED=true
             break
