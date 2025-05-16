@@ -47,9 +47,8 @@ runs:
         ref: ${{ inputs.branch }}
 
     - name: Skip if last commit was an auto-bump
-      shell: bash
       id: skip-check
-      use: River-iGaming/actions/commit-type-check@feature/commit-type-check-in-auto-bump-for-skip
+      uses: River-iGaming/actions/commit-type-check@feature/commit-type-check-in-auto-bump-for-skip
       with:
         commit-types: 'chore(package): auto bump version to'
         skip: 'true'
