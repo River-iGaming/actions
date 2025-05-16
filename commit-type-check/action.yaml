@@ -8,6 +8,10 @@ inputs:
   skip:
     description: 'Skip if last commit types matched, not allow'
     required: false
+    default: 'false'
+  skip-checkout:
+    description: 'Whether to checkout the target branch'
+    required: false
     default: 'false'  
   github-token:
     description: 'GitHub token (required for checkout)'
@@ -22,6 +26,7 @@ runs:
   using: 'composite'
   steps:
     - name: Checkout repository
+      if: inputs.skip-checkout == 'false'
       uses: actions/checkout@v4
       with:
         fetch-depth: 1
