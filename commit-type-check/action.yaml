@@ -34,26 +34,28 @@ runs:
         COMMIT_TYPE_ALLOWED=false
 
         readarray -t COMMIT_TYPES <<< "${{ inputs.commit-types }}"
-        COMMIT_TYPES=($(printf "%s\n" "${COMMIT_TYPES[@]}" | sed '/^\s*$/d'))
-        COMMIT_TYPESS=($(printf "%s" "${COMMIT_TYPES[@]}" | sed '/^\s*$/d'))
-        COMMIT_TYPESN=($(printf "\n" "${COMMIT_TYPES[@]}" | sed '/^\s*$/d'))
+
+        # COMMIT_TYPES=($(printf "%s\n" "${COMMIT_TYPES[@]}" | sed '/^\s*$/d'))
+        
+        for type in "${COMMIT_TYPES[@]}"; do
+          echo "🔹 ==> Commit type: [$type]"
+        done
+        
         echo "🔍 Checking if commit types SN - \"$COMMIT_TYPES\""
         echo "🔍 Checking if commit types SN wit arr - \"$COMMIT_TYPES[@]\""
-        echo "🔍 Checking if commit types S - \"$COMMIT_TYPESS\""
-        echo "🔍 Checking if commit types N - \"$COMMIT_TYPESN\""
-        
+
         COMMIT_MESSAGE="$(git log -1 --pretty=%B)"
         echo "📝 Commit message: \"$COMMIT_MESSAGE\""
 
-        COMMIT_TYPES_CLEAN=()
-        for type in "${COMMIT_TYPES[@]}"; do
-          [[ -n "$type" ]] && COMMIT_TYPES_CLEAN+=("$type")
-        done
-        
-        echo "🔍 Checking if commit types N - \"$COMMIT_TYPES_CLEAN\""
+        # COMMIT_TYPES_CLEAN=()
+        # for type in "${COMMIT_TYPES[@]}"; do
+        #   [[ -n "$type" ]] && COMMIT_TYPES_CLEAN+=("$type")
+        # done
+
+        echo "🔍 Checking if commit types N - \"$COMMIT_TYPES\""
 
         # Match using regex
-        for type in "${COMMIT_TYPES_CLEAN[@]}"; do
+        for type in "${COMMIT_TYPES[@]}"; do
           echo "🔍 Checking if commit message matches: \"$type\" - \"$COMMIT_MESSAGE\""
           if [[ "$COMMIT_MESSAGE" == "$type" ]]; then
             echo "✅ Exact match found: $type"
