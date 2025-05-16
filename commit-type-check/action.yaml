@@ -34,8 +34,7 @@ runs:
         COMMIT_TYPE_ALLOWED=false
 
         readarray -t COMMIT_TYPES <<< "${{ inputs.commit-types }}"
-
-        # COMMIT_TYPES=($(printf "%s\n" "${COMMIT_TYPES[@]}" | sed '/^\s*$/d'))
+        COMMIT_TYPES=($(printf "${COMMIT_TYPES[@]}" | sed '/^\s*$/d'))
         
         for type in "${COMMIT_TYPES[@]}"; do
           echo "🔹 ==> Commit type: [$type]"
