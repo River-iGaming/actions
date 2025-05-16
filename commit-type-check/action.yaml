@@ -56,7 +56,7 @@ runs:
         # Match using regex
         for type in "${COMMIT_TYPES[@]}"; do
           echo "🔍 Checking if commit message matches: \"$type\" - \"$COMMIT_MESSAGE\""
-          if [[ "$COMMIT_MESSAGE" == "$type" ]]; then
+          if [[ "$COMMIT_MESSAGE" == "$type"* ]]; then
             echo "✅ Exact match found: $type"
             COMMIT_TYPE_ALLOWED=true
             break
