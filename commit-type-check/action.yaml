@@ -34,33 +34,43 @@ runs:
         COMMIT_TYPE_ALLOWED=false
 
         readarray -t COMMIT_TYPES <<< "${{ inputs.commit-types }}"
-        COMMIT_TYPES=($(printf "\n" "${COMMIT_TYPES[@]}" | sed '/^\s*$/d'))
-        COMMIT_MESSAGE="$(git log -1 --pretty=%B)"
-        echo "Commit message: $COMMIT_MESSAGE"
+        COMMIT_TYPES=($(printf "%s\n" "${COMMIT_TYPES[@]}" | sed '/^\s*$/d'))
 
-        # Match commit type
+        COMMIT_MESSAGE="$(git log -1 --pretty=%B)"
+        echo "📝 Commit message: \"$COMMIT_MESSAGE\""
+
+        # Match using regex
         for type in "${COMMIT_TYPES[@]}"; do
-          if [[ "$COMMIT_MESSAGE" == "$type"* ]]; then
+          # Convert to regex: escape special characters, allow suffix
+          REGEX="^$(printf '%s' "$type" | sed -E 's/[]\/$*.^[]/\\&/g')([[:space:]]|$)"
+          echo "🔍 Checking against regex: $REGEX"
+
+          if [[ "$COMMIT_MESSAGE" =~ $REGEX ]]; then
+            echo "✅ Matched regex: \"$REGEX\""
             COMMIT_TYPE_ALLOWED=true
             break
+          else
+            echo "❌ No match for regex: \"$REGEX\""
           fi
         done
 
+        ALLOWED_TYPES=$(IFS=", "; echo "${COMMIT_TYPES[*]}")
         if [[ "${{ inputs.skip }}" == "true" ]]; then
           if [[ "$COMMIT_TYPE_ALLOWED" == "true" ]]; then
             COMMIT_TYPE_ALLOWED=false
-            ALLOWED_TYPES=$(IFS=", "; echo "${COMMIT_TYPES[*]}")
+            # ALLOWED_TYPES=$(IFS=", "; echo "${COMMIT_TYPES[*]}")
             echo "::error::❌ Commit types matched \"$COMMIT_MESSAGE\" | Not allowed types: [$ALLOWED_TYPES]"
           else
             COMMIT_TYPE_ALLOWED=true
-            echo "::notice::✅ Commit types not matched"
+            # ALLOWED_TYPES=$(IFS=", "; echo "${COMMIT_TYPES[*]}")
+            echo "::notice::✅ Commit types not matched \"$COMMIT_MESSAGE\" | Not allowed types: [$ALLOWED_TYPES]"
           fi
         else 
           if [ "$COMMIT_TYPE_ALLOWED" = false ]; then
-            ALLOWED_TYPES=$(IFS=", "; echo "${COMMIT_TYPES[*]}")
+            # ALLOWED_TYPES=$(IFS=", "; echo "${COMMIT_TYPES[*]}")
             echo "::error::❌ No commit types matched \"$COMMIT_MESSAGE\" | Allowed types: [$ALLOWED_TYPES]"
           else 
-            echo "::notice::✅ Commit type matched"
+            echo "::notice::✅ Commit type matched \"$COMMIT_MESSAGE\" | Allowed types: [$ALLOWED_TYPES]"
           fi
         fi
 
