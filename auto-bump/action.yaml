@@ -49,24 +49,21 @@ runs:
     - name: Skip if last commit was an auto-bump
       shell: bash
       id: skip-check
-      run: |
-        msg=$(git log -1 --pretty=%B HEAD)
-        echo "Last commit message: $msg"
-        if [[ "$msg" == chore\(package\):\ auto\ bump\ version\ to* ]]; then
-          echo "skip=true" >> $GITHUB_OUTPUT
-        else
-          echo "skip=false" >> $GITHUB_OUTPUT
-        fi
+      use: River-iGaming/actions/commit-type-check@feature/commit-type-check-in-auto-bump-for-skip
+      with:
+        commit-types: 'chore(package): auto bump version to'
+        skip: 'true'
+        github-token: ${{ inputs.github-token }}
 
     - name: Set up Node.js
-      if: steps.skip-check.outputs.skip == 'false'
+      if: steps.skip-check.outputs.allowed == 'true'
       uses: actions/setup-node@v4
       with:
         node-version: ${{ inputs.node-version }}
 
     - name: Bump ${{ inputs.semver }} version
       shell: bash
-      if: steps.skip-check.outputs.skip == 'false'
+      if: steps.skip-check.outputs.allowed == 'true'
       id: bump
       working-directory: ${{ inputs.package_path }}
       run: |
@@ -82,7 +79,7 @@ runs:
 
     - name: Commit and push version bump
       shell: bash
-      if: inputs.include-commit == 'true' && steps.skip-check.outputs.skip == 'false'
+      if: inputs.include-commit == 'true' && steps.skip-check.outputs.allowed == 'true'
       working-directory: ${{ inputs.package_path }}
       run: |
         git config user.email "deploy-bot@riverigaming.com"
