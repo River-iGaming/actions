@@ -37,8 +37,9 @@ runs:
         COMMIT_TYPES=($(printf "%s\n" "${COMMIT_TYPES[@]}" | sed '/^\s*$/d'))
         COMMIT_TYPESS=($(printf "%s" "${COMMIT_TYPES[@]}" | sed '/^\s*$/d'))
         COMMIT_TYPESN=($(printf "\n" "${COMMIT_TYPES[@]}" | sed '/^\s*$/d'))
-        echo "🔍 Checking if commit types - \"$COMMIT_TYPESS\""
-        echo "🔍 Checking if commit types - \"$COMMIT_TYPESN\""
+        echo "🔍 Checking if commit types SN - \"$COMMIT_TYPES\""
+        echo "🔍 Checking if commit types S - \"$COMMIT_TYPESS\""
+        echo "🔍 Checking if commit types N - \"$COMMIT_TYPESN\""
         
         COMMIT_MESSAGE="$(git log -1 --pretty=%B)"
         echo "📝 Commit message: \"$COMMIT_MESSAGE\""
