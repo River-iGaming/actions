@@ -84,7 +84,6 @@ runs:
               AUTO_RESOLVED=true
             else
               echo "::error::❌ Conflict in $file cannot be auto-resolved. Aborting merge."
-              git merge --abort
               MERGE_FAILED=true
               break
             fi
@@ -104,7 +103,7 @@ runs:
             git commit -m "chore(*): auto-resolve version conflicts"
           else
             echo "::notice::✅ Commit and push to: ${{ inputs.target-branch }}"
-            git commit --no-edit
+           git commit -m "chore(*): merged ${{ inputs.source-branch }} in to ${{ inputs.target-branch }}"
           fi
           git push origin "${{ inputs.target-branch }}"
         fi
