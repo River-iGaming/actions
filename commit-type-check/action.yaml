@@ -45,7 +45,6 @@ runs:
           [[ -z "$type" ]] && continue
 
           if [[ "$COMMIT_MESSAGE" == "$type"* ]]; then
-            echo "✅ Exact match found: $type"
             COMMIT_TYPE_ALLOWED=true
             break
           fi
