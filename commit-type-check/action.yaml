@@ -1,0 +1,76 @@
+name: Check Commit Type
+description: Verifies whether the previous commit starts with supplied inputs.
+
+inputs:
+  commit-types:
+    description: 'List of allowed commit types'
+    required: true
+  error-on-match:
+    description: 'Exit if commit matches any of the provided types'
+    required: false
+    default: 'false'
+  skip-checkout:
+    description: 'Whether to checkout the target branch'
+    required: false
+    default: 'false'  
+  github-token:
+    description: 'GitHub token with write permissions'
+    required: true
+
+outputs:
+  allowed:
+    description: 'true if commit type is allowed, false otherwise'
+    value: ${{ steps.check.outputs.allowed }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout repository
+      if: inputs.skip-checkout == 'false'
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+        token: ${{ inputs.github-token }}
+
+    - name: Check commit type
+      id: check
+      shell: bash
+      run: |
+        COMMIT_TYPE_ALLOWED=false
+        
+        readarray -t COMMIT_TYPES <<< "${{ inputs.commit-types }}"
+        COMMIT_MESSAGE="$(git log -1 --pretty=%B)"
+        echo "::notice:: Commit message \"$COMMIT_MESSAGE\""
+        
+        for type in "${COMMIT_TYPES[@]}"; do
+          echo "::notice:: commit type: $type"
+
+          [[ -z "$type" ]] && continue
+
+          if [[ "$COMMIT_MESSAGE" == "$type"* ]]; then
+            COMMIT_TYPE_ALLOWED=true
+            break
+          fi
+        done
+
+        if [[ "${{ inputs.error-on-match }}" == "true" ]]; then
+          if [[ "$COMMIT_TYPE_ALLOWED" == "true" ]]; then
+            COMMIT_TYPE_ALLOWED=false
+            ALLOWED_TYPES=$(IFS=", "; echo "${COMMIT_TYPES[*]}")
+            echo "::error::❌ Commit types matched \"$COMMIT_MESSAGE\" | Not allowed types: [$ALLOWED_TYPES]"
+            exit 1
+          else
+            COMMIT_TYPE_ALLOWED=true
+            echo "::notice::✅ Commit types not matched"
+          fi
+        else 
+          if [ "$COMMIT_TYPE_ALLOWED" = false ]; then
+            ALLOWED_TYPES=$(IFS=", "; echo "${COMMIT_TYPES[*]}")
+            echo "::error::❌ No commit types matched \"$COMMIT_MESSAGE\" | Allowed types: [$ALLOWED_TYPES]"
+            exit 1
+          else 
+            echo "::notice::✅ Commit type matched"
+          fi
+        fi
+
+        echo "allowed=$COMMIT_TYPE_ALLOWED" >> $GITHUB_OUTPUT
