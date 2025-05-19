@@ -40,8 +40,11 @@ runs:
         
         readarray -t COMMIT_TYPES <<< "${{ inputs.commit-types }}"
         COMMIT_MESSAGE="$(git log -1 --pretty=%B)"
+        echo "::notice:: Commit message \"$COMMIT_MESSAGE\""
         
         for type in "${COMMIT_TYPES[@]}"; do
+          echo "::notice:: commit type: $type"
+
           [[ -z "$type" ]] && continue
 
           if [[ "$COMMIT_MESSAGE" == "$type"* ]]; then
@@ -49,7 +52,7 @@ runs:
             break
           fi
         done
-
+        ALLOWED_TYPES=$(IFS=", "; echo "${COMMIT_TYPES[*]}")
         if [[ "${{ inputs.error-on-match }}" == "true" ]]; then
           if [[ "$COMMIT_TYPE_ALLOWED" == "true" ]]; then
             COMMIT_TYPE_ALLOWED=false
