@@ -51,7 +51,7 @@ runs:
       uses: River-iGaming/actions/commit-type-check@feature/commit-type-check-in-auto-bump-for-skip
       with:
         commit-types: 'chore(package): auto bump version'
-        deny-on-match: 'true'
+        error-on-match: 'true'
         skip-checkout: ${{ inputs.skip-checkout }}
         github-token: ${{ inputs.github-token }}
 

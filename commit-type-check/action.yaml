@@ -5,8 +5,8 @@ inputs:
   commit-types:
     description: 'List of allowed commit types'
     required: true
-  deny-on-match:
-    description: 'Deny if commit matches any of the provided types'
+  error-on-match:
+    description: 'Exit if commit matches any of the provided types'
     required: false
     default: 'false'
   skip-checkout:
@@ -50,11 +50,12 @@ runs:
           fi
         done
 
-        if [[ "${{ inputs.deny-on-match }}" == "true" ]]; then
+        if [[ "${{ inputs.error-on-match }}" == "true" ]]; then
           if [[ "$COMMIT_TYPE_ALLOWED" == "true" ]]; then
             COMMIT_TYPE_ALLOWED=false
             ALLOWED_TYPES=$(IFS=", "; echo "${COMMIT_TYPES[*]}")
             echo "::error::❌ Commit types matched \"$COMMIT_MESSAGE\" | Not allowed types: [$ALLOWED_TYPES]"
+            exit 1
           else
             COMMIT_TYPE_ALLOWED=true
             echo "::notice::✅ Commit types not matched"
@@ -63,6 +64,7 @@ runs:
           if [ "$COMMIT_TYPE_ALLOWED" = false ]; then
             ALLOWED_TYPES=$(IFS=", "; echo "${COMMIT_TYPES[*]}")
             echo "::error::❌ No commit types matched \"$COMMIT_MESSAGE\" | Allowed types: [$ALLOWED_TYPES]"
+            exit 1
           else 
             echo "::notice::✅ Commit type matched"
           fi
