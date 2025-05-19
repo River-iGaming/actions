@@ -48,7 +48,7 @@ runs:
 
     - name: Skip if last commit was an auto-bump
       id: skip-check
-      uses: River-iGaming/actions/commit-type-check@feature/commit-type-check-in-auto-bump-for-skip
+      uses: River-iGaming/actions/commit-type-check@feature/commit-type-check
       with:
         commit-types: 'chore(package): auto bump version'
         error-on-match: 'true'
