@@ -43,9 +43,8 @@ runs:
         echo "::notice:: Commit message \"$COMMIT_MESSAGE\""
         
         for type in "${COMMIT_TYPES[@]}"; do
-          echo "::notice:: commit type: $type"
-
           [[ -z "$type" ]] && continue
+          echo "::notice:: commit type: $type"
 
           if [[ "$COMMIT_MESSAGE" == "$type"* ]]; then
             COMMIT_TYPE_ALLOWED=true
