@@ -1,0 +1,109 @@
+name: Merge Branch
+description: Merges a source branch into a target branch and auto-resolves version file conflicts.
+
+inputs:
+  source-branch:
+    description: 'Branch to merge from'
+    required: true
+  target-branch:
+    description: 'Branch to merge into'
+    required: true
+  conflict-auto-keep-files:  
+    description: 'Files where merge conflicts are automatically resolved by keeping the current branch version'  
+    required: false  
+    default: |  
+      package.json 
+  include-commit:
+    description: 'Whether to commit and push the merged branch'
+    required: false
+    default: 'true'
+  github-token:
+    description: 'GitHub token with write permissions'
+    required: true
+
+outputs:
+  merge-failed:
+    description: 'true if merge is required due to unresolvable conflicts'
+    value: ${{ steps.merge.outputs.merge-failed }}
+  auto-resolved:
+    description: 'true if conflicts were auto-resolved'
+    value: ${{ steps.merge.outputs.auto-resolved }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout full history
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ inputs.github-token }}
+        ref: ${{ inputs.source-branch }}
+
+    - name: Merge source into target with auto-resolve
+      id: merge
+      shell: bash
+      run: |
+        git fetch --all
+        git config user.email "deploy-bot@riverigaming.com"
+        git config user.name "rig-autobot"
+
+        SOURCE_BRANCH="${{ inputs.source-branch }}"
+        TARGET_BRANCH="${{ inputs.target-branch }}"
+        MERGE_FAILED=false
+        AUTO_RESOLVED=false
+
+        git checkout "$TARGET_BRANCH"
+
+        echo "::notice::Merging branch: $SOURCE_BRANCH into: $TARGET_BRANCH"
+
+        if git merge --no-commit --no-ff --no-edit "$SOURCE_BRANCH"; then
+          if [[ -z "$(git status --porcelain)" ]]; then
+            echo "::notice::Nothing to commit for branch: $TARGET_BRANCH"
+          fi
+        else
+          CONFLICTS=$(git diff --name-only --diff-filter=U)
+          echo "::warning::Conflicts: $CONFLICTS"
+
+          readarray -t FILES <<< "${{ inputs.conflict-auto-keep-files }}"
+          FILES=($(printf "%s\n" "${FILES[@]}" | sed '/^\s*$/d'))
+
+          for file in $CONFLICTS; do
+            IS_FILE=false
+
+            for vfile in "${FILES[@]}"; do
+              if [[ "$file" == "$vfile" ]]; then
+                IS_FILE=true
+                break
+              fi
+            done
+
+            if [[ "$IS_FILE" == true ]]; then
+              echo "::notice::⚠️ Auto-resolving $file version conflicts."
+              git checkout --ours "$file"
+              git add "$file"
+              AUTO_RESOLVED=true
+            else
+              echo "::error::❌ Conflict in $file cannot be auto-resolved. Aborting merge."
+              MERGE_FAILED=true
+              break
+            fi
+          done
+        fi
+
+        echo "merge-failed=$MERGE_FAILED" >> "$GITHUB_OUTPUT"
+        echo "auto-resolved=$AUTO_RESOLVED" >> "$GITHUB_OUTPUT"
+
+    - name: Commit and push merged changes
+      if: inputs.include-commit == 'true' && steps.merge.outputs.merge-failed == 'false'
+      shell: bash
+      run: |
+        if [[ -n "$(git status --porcelain)" ]]; then
+          if [[ "${{ steps.merge.outputs.auto-resolved }}" == true ]]; then
+            echo "::notice::⚠️ Conflicts auto-resolved, commit and push: ${{ inputs.target-branch }}"
+            git commit -m "chore(*): auto-resolve version conflicts"
+          else
+            echo "::notice::✅ Commit and push to: ${{ inputs.target-branch }}"
+           git commit -m "chore(*): merged ${{ inputs.source-branch }} into ${{ inputs.target-branch }}"
+          fi
+          git push origin "${{ inputs.target-branch }}"
+        fi
