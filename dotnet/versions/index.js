@@ -63,7 +63,7 @@ function generateVersionString(branch, version, runNumber) {
 	}
 
 	if (branch.startsWith("release")) {
-		return generateFinalVersionName(version, "rc", runNumber);
+		return generateFinalVersionName(version, `rc-${normalizeBranchName(branch, true)}`, runNumber);
 	}
 
 	return generateFinalVersionName(version, normalizeBranchName(branch, false), runNumber);
