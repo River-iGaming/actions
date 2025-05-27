@@ -1,0 +1,95 @@
+name: Auto Bump Version
+description: This action automatically bumps the version based on semver input.
+
+inputs:
+  branch:
+    description: 'Branch to bump the version on'
+    required: false
+    default: 'master'
+  semver:
+    description: 'Semver version bump type (major, minor, patch)'
+    required: false
+    default: 'patch'
+  package_path:
+    description: 'Path to package.json directory'
+    required: false
+    default: './'
+  include-commit:
+    description: 'Whether to commit and push the bumped version'
+    required: false
+    default: 'true'
+  skip-checkout:
+    description: 'Whether to checkout the target branch'
+    required: false
+    default: 'false'
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '22'
+  github-token:
+    description: 'GitHub token with write permissions'
+    required: true
+
+outputs:
+  all:
+    description: 'All output in JSON'
+    value: ${{ steps.bundle_output.outputs.all }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout target branch
+      if: inputs.skip-checkout == 'false'
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+        token: ${{ inputs.github-token }}
+        ref: ${{ inputs.branch }}
+
+    - name: Skip if last commit was an auto-bump
+      id: skip-check
+      uses: River-iGaming/actions/commit-type-check@v4
+      with:
+        commit-types: 'chore(package): auto bump version'
+        error-on-match: 'true'
+        skip-checkout: ${{ inputs.skip-checkout }}
+        github-token: ${{ inputs.github-token }}
+
+    - name: Set up Node.js
+      if: steps.skip-check.outputs.allowed == 'true'
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Bump ${{ inputs.semver }} version
+      shell: bash
+      if: steps.skip-check.outputs.allowed == 'true'
+      id: bump
+      working-directory: ${{ inputs.package_path }}
+      run: |
+        current_version=$(jq -r '.version' package.json)
+        echo "Current version: $current_version"
+
+        npm version --no-git-tag-version ${{ inputs.semver }}
+
+        new_version=$(jq -r '.version' package.json)
+        echo "New version: $new_version"
+
+        echo "new_version=$new_version" >> $GITHUB_OUTPUT
+
+    - name: Commit and push version bump
+      shell: bash
+      if: inputs.include-commit == 'true' && steps.skip-check.outputs.allowed == 'true'
+      working-directory: ${{ inputs.package_path }}
+      run: |
+        git config user.email "deploy-bot@riverigaming.com"
+        git config user.name "rig-autobot[version-bump]"
+        git add package.json
+        git commit -m "chore(package): auto bump version to ${{ steps.bump.outputs.new_version }}"
+        git push origin ${{ inputs.branch }}
+
+    - name: Bundle outputs into JSON
+      shell: bash
+      id: bundle_output
+      run: |
+        echo "all={\"new_version\":\"${{ steps.bump.outputs.new_version }}\"}" >> $GITHUB_OUTPUT
