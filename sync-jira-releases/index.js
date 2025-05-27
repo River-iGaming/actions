@@ -10,7 +10,7 @@ const github = require("@actions/github");
 		authentication: {
 			basic: {
 				email:  core.getInput("jira-api-token", { required: true }) ,
-				apiToken: core.getInput("jira-api-user", { required: true }),
+				apiToken: core.getInput("jira-user", { required: true }),
 			},
 		},
 	});
