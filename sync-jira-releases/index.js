@@ -6,11 +6,11 @@ const github = require("@actions/github");
 	const projectKeyMap = { "RTVX": 10110, "RTTH": 10109, "RTMG": 10111 };
 
 	const client = new Version3Client({
-		host: "https://rivertechnologies.atlassian.net",
+		host: core.getInput("jira-url", { required: true }), //"https://rivertechnologies.atlassian.net",
 		authentication: {
 			basic: {
-				email:  core.getInput("JIRA_API_USER", { required: true }) ,
-				apiToken: core.getInput("JIRA_API_TOKEN", { required: true }),
+				email:  core.getInput("jira-api-token", { required: true }) ,
+				apiToken: core.getInput("jira-api-user", { required: true }),
 			},
 		},
 	});
