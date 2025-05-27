@@ -29506,16 +29506,18 @@ var __webpack_exports__ = {};
 const github = __nccwpck_require__(3228);
 
 (async () => {
+	console.log("Syncing Jira releases...");
+
 	const { Version3Client } = await __nccwpck_require__.e(/* import() */ 774).then(__nccwpck_require__.bind(__nccwpck_require__, 774));
 
 	const projectKeyMap = { "RTVX": 10110, "RTTH": 10109, "RTMG": 10111 };
 
 	const client = new Version3Client({
-		host: "https://rivertechnologies.atlassian.net",
+		host: core.getInput("jira-url", { required: true }), //"https://rivertechnologies.atlassian.net",
 		authentication: {
 			basic: {
-				email:  core.getInput("JIRA_API_USER", { required: true }) ,
-				apiToken: core.getInput("JIRA_API_TOKEN", { required: true }),
+				email:  core.getInput("jira-api-token", { required: true }) ,
+				apiToken: core.getInput("jira-user", { required: true }),
 			},
 		},
 	});
