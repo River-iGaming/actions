@@ -1,6 +1,8 @@
 const github = require("@actions/github");
 
 (async () => {
+	console.log("Syncing Jira releases...");
+
 	const { Version3Client } = await import("jira.js");
 
 	const projectKeyMap = { "RTVX": 10110, "RTTH": 10109, "RTMG": 10111 };
