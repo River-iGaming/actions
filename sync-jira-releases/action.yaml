@@ -1,15 +1,10 @@
 name: "Sync Jira Releases"
 description: "Syncs the release with Jira, creating a new release in the specified Jira project"
 inputs:
-  package-version:
-    description: "Package version"
-    required: true
-  app-version:
-    description: "The final app version"
-    required: true
-outputs:
-  app-version:
-    description: "The app version generated"
+  jira-url:
+    description: "The URL of the Jira instance"
+    required: false
+    default: "https://rivertechnologies.atlassian.net"
 runs:
   using: "node20"
   main: "dist/index.js"
