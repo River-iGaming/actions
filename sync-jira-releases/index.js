@@ -2,18 +2,23 @@ const github = require("@actions/github");
 const core = require("@actions/core");
 
 (async () => {
-	console.log("Syncing Jira releases...");
+
+	const jiraUrl = core.getInput("jira-url", { required: true });
+	const jiraApiToken = core.getInput("jira-api-token", { required: true });
+	const jiraUser = core.getInput("jira-user", { required: true });
+
+	console.log(`Syncing Jira releases...${jiraUrl}, ${jiraUser}, ${jiraApiToken}`);
 
 	const { Version3Client } = await import("jira.js");
 
 	const projectKeyMap = { "RTVX": 10110, "RTTH": 10109, "RTMG": 10111 };
 
 	const client = new Version3Client({
-		host: core.getInput("jira-url", { required: true }), //"https://rivertechnologies.atlassian.net",
+		host: , //"https://rivertechnologies.atlassian.net",
 		authentication: {
 			basic: {
-				email:  core.getInput("jira-api-token", { required: true }) ,
-				apiToken: core.getInput("jira-user", { required: true }),
+				email: jiraUser,
+				apiToken: jiraApiToken,
 			},
 		},
 	});
