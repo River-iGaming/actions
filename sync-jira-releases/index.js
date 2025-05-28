@@ -14,11 +14,11 @@ const core = require("@actions/core");
 	const projectKeyMap = { "RTVX": 10110, "RTTH": 10109, "RTMG": 10111 };
 
 	const client = new Version3Client({
-		host: jiraUrl, //"https://rivertechnologies.atlassian.net",
+		host: jiraUrl ?? "https://rivertechnologies.atlassian.net",
 		authentication: {
 			basic: {
-				email: jiraUser,
-				apiToken: jiraApiToken,
+				email: jiraUser ?? "atlassian.api@river.tech",
+				apiToken: jiraApiToken
 			},
 		},
 	});
@@ -29,7 +29,7 @@ const core = require("@actions/core");
 	// // const runNumber = github.context.runNumber;
 	// const release = github.context.payload.release;
 	const release = {
-		name: "v1.2.3",
+		name: "v1.2.3.7",
 		tag_name: "v1.2.3",
 		body: "## What's Changed\n- Fixed critical bug in authentication\n- Added new user dashboard\n- Improved performance by 25%",
 		draft: false,
