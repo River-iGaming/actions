@@ -7,7 +7,7 @@ const core = require("@actions/core");
 	const jiraApiToken = core.getInput("jira-api-token", { required: true });
 	const jiraUser = core.getInput("jira-user", { required: true });
 
-	console.log(`Syncing Jira releases...${jiraUrl}, ${jiraUser}, ${jiraApiToken}`);
+	console.log(`Syncing Jira releases...${jiraUrl}, ${jiraUser}, ${jiraApiToken} `);
 
 	const { Version3Client } = await import("jira.js");
 
