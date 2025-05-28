@@ -14,7 +14,7 @@ const core = require("@actions/core");
 	const projectKeyMap = { "RTVX": 10110, "RTTH": 10109, "RTMG": 10111 };
 
 	const client = new Version3Client({
-		host: , //"https://rivertechnologies.atlassian.net",
+		host: jiraUrl, //"https://rivertechnologies.atlassian.net",
 		authentication: {
 			basic: {
 				email: jiraUser,
