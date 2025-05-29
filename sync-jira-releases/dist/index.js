@@ -31956,18 +31956,24 @@ const github = __nccwpck_require__(3228);
 const core = __nccwpck_require__(7484);
 
 (async () => {
-	console.log("Syncing Jira releases...");
+
+	const jiraUrl = core.getInput("jira-url", { required: true });
+	const jiraApiToken = core.getInput("jira-api-token", { required: true });
+	const jiraUser = core.getInput("jira-user", { required: true });
+
+	console.log(`Jira URL: ${jiraUrl}`);
+	console.log(`Syncing Jira releases... ${jiraUrl}, ${jiraUser}, ${jiraApiToken} `);
 
 	const { Version3Client } = await __nccwpck_require__.e(/* import() */ 774).then(__nccwpck_require__.bind(__nccwpck_require__, 774));
 
 	const projectKeyMap = { "RTVX": 10110, "RTTH": 10109, "RTMG": 10111 };
 
 	const client = new Version3Client({
-		host: core.getInput("jira-url", { required: true }), //"https://rivertechnologies.atlassian.net",
+		host: jiraUrl ?? "https://rivertechnologies.atlassian.net",
 		authentication: {
 			basic: {
-				email:  core.getInput("jira-api-token", { required: true }) ,
-				apiToken: core.getInput("jira-user", { required: true }),
+				email: jiraUser ?? "atlassian.api@river.tech",
+				apiToken: jiraApiToken
 			},
 		},
 	});
@@ -31978,7 +31984,7 @@ const core = __nccwpck_require__(7484);
 	// // const runNumber = github.context.runNumber;
 	// const release = github.context.payload.release;
 	const release = {
-		name: "v1.2.3",
+		name: "v1.2.3.7",
 		tag_name: "v1.2.3",
 		body: "## What's Changed\n- Fixed critical bug in authentication\n- Added new user dashboard\n- Improved performance by 25%",
 		draft: false,
