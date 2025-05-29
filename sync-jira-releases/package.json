@@ -4,7 +4,7 @@
   "description": "GitHub Action to sync releases with Jira",
   "main": "index.js",
   "scripts": {
-    "start": "npm run build -- watch",
+    "start": "npm run build -- --watch",
     "build": "ncc build index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
