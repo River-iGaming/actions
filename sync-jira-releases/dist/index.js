@@ -30115,6 +30115,14 @@ module.exports = require("timers");
 
 /***/ }),
 
+/***/ 6460:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("timers/promises");
+
+/***/ }),
+
 /***/ 4756:
 /***/ ((module) => {
 
@@ -31954,6 +31962,7 @@ module.exports = parseParams
 var __webpack_exports__ = {};
 const github = __nccwpck_require__(3228);
 const core = __nccwpck_require__(7484);
+const { setTimeout: index_setTimeout } = __nccwpck_require__(6460);
 
 (async () => {
 
@@ -31961,7 +31970,7 @@ const core = __nccwpck_require__(7484);
 	const jiraApiToken = core.getInput("jira-api-token", { required: true });
 	const jiraUser = core.getInput("jira-user", { required: true });
 
-	console.log(`Syncing Jira releases... ${jiraUrl}, ${jiraUser}, ${jiraApiToken} `);
+	console.log(`Syncing Jira releases for ${jiraUrl} -> 🚀`);
 
 	const { Version3Client } = await __nccwpck_require__.e(/* import() */ 774).then(__nccwpck_require__.bind(__nccwpck_require__, 774));
 
@@ -31982,8 +31991,8 @@ const core = __nccwpck_require__(7484);
 
 	const release = github.context.payload.release;
 	// const release = {
-	// 	name: "TST-DNET-ThunderWheel",
-	// 	tag_name: "1.2.3",
+	// 	name: "TST-DNET-ThunderWheel6618",
+	// 	tag_name: "1.2.6618",
 	// 	body: "## What's Changed\n- Fixed critical bug in authentication\n- Added new user dashboard\n- Improved performance by 25%",
 	// 	draft: false,
 	// 	prerelease: true,
@@ -32040,7 +32049,47 @@ const core = __nccwpck_require__(7484);
 		released: false, // Set to true if you want to immediately mark as released
 	});
 
-	console.log(`Created Jira release: ${jiraRelease.name} with ID: ${jiraRelease.id}`);
+
+	console.log(`Created Jira release: ${jiraRelease.name} with ID: ${jiraRelease.id} ✅`);
+	await index_setTimeout(10000); // Wait to ensure the release is created
+
+	// client.projectVersions.getVersion({
+	// 	projectId: projectId,
+	// 	versionId: jiraRelease.id
+	// });;
+
+	const issuesResult = await client.issueSearch.searchForIssuesUsingJqlEnhancedSearchPost({
+		jql: `project = "${projectKey}" AND summary ~ "${release.name}"`,
+		fields: ['summary', 'status', 'assignee', 'priority', 'issuetype'],
+		maxResults: 1
+	});
+
+	const releaseTicket = issuesResult.issues[0]?.id;
+	if (!releaseTicket) {
+		console.warn(`Release ticket not found for release: ${release.name}`);
+		return;
+	}
+
+	console.log(`Found release ticket: ${releaseTicket} for release: ${release.name}`);
+
+	const transitionsResult = await client.issues.getTransitions({
+		issueIdOrKey: releaseTicket
+	});
+
+	const lockedTransitionId = transitionsResult.transitions.find(t => t.name.toLowerCase() === "locked")?.id;
+	if (!lockedTransitionId) {
+		console.warn(`No 'Locked' transition found for issue: ${releaseTicket}`);
+		return;
+	}
+
+	await client.issues.doTransition({
+		issueIdOrKey: releaseTicket,
+		transition: {
+			id: lockedTransitionId
+		}
+	});
+
+	console.log(`Transitioned release ticket ${releaseTicket} to 'Locked' state successfully. 🔒`);
 })();
 module.exports = __webpack_exports__;
 /******/ })()
