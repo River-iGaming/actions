@@ -31984,7 +31984,6 @@ const { setTimeout: index_setTimeout } = __nccwpck_require__(6460);
 		},
 	});
 
-	// const branch = github.context.ref.replace("refs/heads/", "");
 	// // const packageVersion = core.getInput("package-version");
 	// // const version = core.getInput("app-version");
 	// const runNumber = github.context.runNumber;
@@ -32005,6 +32004,22 @@ const { setTimeout: index_setTimeout } = __nccwpck_require__(6460);
 	// 	assets: []
 	// };
 
+	let releaseName = release?.name;
+	let releaseBody = release?.body ?? "";
+	let releaseCreatedAt = release?.created_at ?? new Date().toISOString();
+
+	if (!release) {
+		console.log("Branch release creation detected...");
+
+		const releaseBranch = github.context.ref.replace("refs/heads/", "");
+		if (releaseBranch.startsWith("release/") === -1) {
+			throw `Branch ${releaseBranch} is not a 'release' branch ❌`;
+		}
+
+		releaseName = releaseBranch.replace("release/", "").toUpperCase();
+		// releaseBody = `Release branch created: ${releaseBranch}`;
+	}
+
 	const projects = await client.projects.searchProjects();
 	const projectKeyMap = projects.values
 		.filter(p => p.key.startsWith("RT") > 0)
@@ -32016,7 +32031,7 @@ const { setTimeout: index_setTimeout } = __nccwpck_require__(6460);
 
 	const releaseKeys = { "MGM": "RTMG", "THN": "RTTH", "VTX": "RTVX", "TST": "RT" }
 
-	const nameParts = release.name.split("-").map(s => s.trim().toUpperCase());
+	const nameParts = releaseName.split("-").map(s => s.trim().toUpperCase());
 	const projectReleaseKey = nameParts[0]; // Assuming the first part is the project key
 	if (!releaseKeys[projectReleaseKey]) {
 		throw `Release key ${projectReleaseKey} Invalid.`;
@@ -32040,13 +32055,13 @@ const { setTimeout: index_setTimeout } = __nccwpck_require__(6460);
 	console.log(`Release Key is ${projectReleaseKey} resolved:: Project ID for ${projectKey} is ${projectId} and component is ${component}`);
 
 	const jiraRelease = await client.projectVersions.createVersion({
-		name: release.name,
-		description: release.body,
+		name: releaseName,
+		description: releaseBody,
 		projectId: projectId, //10057, // test
 		project: projectKey, //"RT",
-		startDate: new Date(release.created_at).toISOString().split("T")[0], // Format to YYYY-MM-DD
+		startDate: new Date(releaseCreatedAt).toISOString().split("T")[0], // Format to YYYY-MM-DD
 		// releaseDate: new Date(release.published_at).toISOString().split("T")[0], // Format to YYYY-MM-DD
-		released: false, // Set to true if you want to immediately mark as released
+		released: false
 	});
 
 
@@ -32059,18 +32074,18 @@ const { setTimeout: index_setTimeout } = __nccwpck_require__(6460);
 	// });;
 
 	const issuesResult = await client.issueSearch.searchForIssuesUsingJqlEnhancedSearchPost({
-		jql: `project = "${projectKey}" AND summary ~ "${release.name}"`,
+		jql: `project = "${projectKey}" AND summary ~ "${releaseName}"`,
 		fields: ['summary', 'status', 'assignee', 'priority', 'issuetype'],
 		maxResults: 1
 	});
 
 	const releaseTicket = issuesResult.issues[0]?.id;
 	if (!releaseTicket) {
-		console.warn(`Release ticket not found for release: ${release.name}`);
+		console.warn(`Release ticket not found for release: ${releaseName}`);
 		return;
 	}
 
-	console.log(`Found release ticket: ${releaseTicket} for release: ${release.name}`);
+	console.log(`Found release ticket: ${releaseTicket} for release: ${releaseName}`);
 
 	const transitionsResult = await client.issues.getTransitions({
 		issueIdOrKey: releaseTicket
