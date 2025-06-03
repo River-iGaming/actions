@@ -162,6 +162,6 @@ const { setTimeout } = require("timers/promises");
 
 	console.log(`Transitioned release ticket ${releaseTicket} to 'Locked' state successfully. 🔒`);
 })().catch((error) => {
-	console.error(`Error syncing Jira releases: ${error}`);
+	console.error(error);
 	core.setFailed(`Syncing Jira releases failed: ${error.message}`);
 });
