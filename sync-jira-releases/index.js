@@ -23,7 +23,7 @@ const { setTimeout } = require("timers/promises");
 	});
 
 	const release = github.context.payload.release;
-
+	const runNumber = github.context.runNumber;
 	let releaseName = release?.name;
 	let releaseBody = release?.body ?? "";
 	let releaseCreatedAt = release?.created_at ?? new Date().toISOString();
@@ -135,6 +135,11 @@ const { setTimeout } = require("timers/promises");
 		transition: {
 			id: lockedTransitionId
 		}
+	});
+
+	await client.projectVersions.updateVersion({
+		id: jiraRelease.id,
+		description: `${nameParts[0]}-${nameParts[1]}-${runNumber}`,
 	});
 
 	console.log(`🔒 Transitioned release ticket ${releaseTicket} to 'Locked' state successfully.`);
