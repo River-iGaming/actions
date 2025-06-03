@@ -32062,10 +32062,8 @@ const { setTimeout: index_setTimeout } = __nccwpck_require__(6460);
 
 	console.log(`Release Key is ${projectReleaseKey} resolved:: Project ID for ${projectKey} is ${projectId} and component is ${component}`);
 
-	const versions = await client.projectVersions.getProjectVersionsPaginated({
-		projectId: projectKey,
-		maxResults: 1000,
-		startAt: 0
+	const versions = await client.projectVersions.getProjectVersions({
+		projectIdOrKey: projectKey
 	});
 
 	const existingVersion = versions.find(v => v.name.toUpperCase() === releaseName.toUpperCase());
