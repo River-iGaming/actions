@@ -47,9 +47,10 @@ const { setTimeout } = require("timers/promises");
 	let releaseCreatedAt = release?.created_at ?? new Date().toISOString();
 
 	if (!release) {
-		console.log("Branch release creation detected...");
+		console.log(`Branch release creation detected...`);
 
 		const releaseBranch = github.context.ref.replace("refs/heads/", "");
+		console.log(`Branch name... ${releaseBranch}`);
 		if (releaseBranch.startsWith("release/") === -1) {
 			throw `Branch ${releaseBranch} is not a 'release' branch ❌`;
 		}
@@ -91,6 +92,16 @@ const { setTimeout } = require("timers/promises");
 	}
 
 	console.log(`Release Key is ${projectReleaseKey} resolved:: Project ID for ${projectKey} is ${projectId} and component is ${component}`);
+
+	const versions = await client.projectVersions.getProjectVersions({
+		projectId: projectId,
+	});
+
+	const existingVersion = versions.find(v => v.name.toUpperCase() === releaseName.toUpperCase());
+	if (existingVersion) {
+		console.log(`Release version ${releaseName} already exists in Jira. Skipping creation.`);
+		return;
+	}
 
 	const jiraRelease = await client.projectVersions.createVersion({
 		name: releaseName,
