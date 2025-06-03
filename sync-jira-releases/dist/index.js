@@ -32124,7 +32124,7 @@ const { setTimeout: index_setTimeout } = __nccwpck_require__(6460);
 
 	console.log(`Transitioned release ticket ${releaseTicket} to 'Locked' state successfully. 🔒`);
 })().catch((error) => {
-	console.error(`Error syncing Jira releases: ${error.message}`);
+	console.error(`Error syncing Jira releases: ${error}`);
 	core.setFailed(`Syncing Jira releases failed: ${error.message}`);
 });
 module.exports = __webpack_exports__;
