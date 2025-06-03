@@ -62,7 +62,7 @@ const { setTimeout } = require("timers/promises");
 
 	const projects = await client.projects.searchProjects();
 	const projectKeyMap = projects.values
-		.filter(p => p.key.startsWith("RT") > 0)
+		.filter(p => p.key.startsWith("RT"))
 		.reduce((prev, curr) => {
 			prev[curr.key.toUpperCase()] = curr.id;
 			return prev;
@@ -101,7 +101,7 @@ const { setTimeout } = require("timers/promises");
 	console.log(`Release Key is ${projectReleaseKey} resolved:: Project ID for ${projectKey} is ${projectId} and component is ${component}`);
 
 	const versions = await client.projectVersions.getProjectVersions({
-		projectId: projectId,
+		projectId: projectKey
 	});
 
 	const existingVersion = versions.find(v => v.name.toUpperCase() === releaseName.toUpperCase());
