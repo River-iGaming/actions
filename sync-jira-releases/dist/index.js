@@ -32007,8 +32007,9 @@ const { setTimeout: index_setTimeout } = __nccwpck_require__(6460);
 	let releaseName = release?.name;
 	let releaseBody = release?.body ?? "";
 	let releaseCreatedAt = release?.created_at ?? new Date().toISOString();
+	let isReleaseByBranch = !release;
 
-	if (!release) {
+	if (isReleaseByBranch) {
 		console.log(`Branch release creation detected...`);
 
 		const releaseBranch = github.context.ref.replace("refs/heads/", "");
@@ -32033,6 +32034,12 @@ const { setTimeout: index_setTimeout } = __nccwpck_require__(6460);
 	const releaseKeys = { "MGM": "RTMG", "THN": "RTTH", "VTX": "RTVX", "TST": "RT" }
 
 	const nameParts = releaseName.split("-").map(s => s.trim().toUpperCase());
+
+	if (isReleaseByBranch && nameParts.length < 2) {
+		console.log(`🏁 Release name ${releaseName} does not follow the expected format. Assuming it's not a branch release. Create release through GitHub.`);
+		return;
+	}
+
 	const projectReleaseKey = nameParts[0]; // Assuming the first part is the project key
 	if (!releaseKeys[projectReleaseKey]) {
 		throw `Release key ${projectReleaseKey} Invalid.`;
@@ -32116,7 +32123,10 @@ const { setTimeout: index_setTimeout } = __nccwpck_require__(6460);
 	});
 
 	console.log(`Transitioned release ticket ${releaseTicket} to 'Locked' state successfully. 🔒`);
-})();
+})().catch((error) => {
+	console.error(`Error syncing Jira releases: ${error.message}`);
+	core.setFailed(`Syncing Jira releases failed: ${error.message}`);
+});
 module.exports = __webpack_exports__;
 /******/ })()
 ;
