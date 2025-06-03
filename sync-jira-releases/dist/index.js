@@ -31984,25 +31984,7 @@ const { setTimeout: index_setTimeout } = __nccwpck_require__(6460);
 		},
 	});
 
-	// // const packageVersion = core.getInput("package-version");
-	// // const version = core.getInput("app-version");
-	// const runNumber = github.context.runNumber;
-
 	const release = github.context.payload.release;
-	// const release = {
-	// 	name: "TST-DNET-ThunderWheel6618",
-	// 	tag_name: "1.2.6618",
-	// 	body: "## What's Changed\n- Fixed critical bug in authentication\n- Added new user dashboard\n- Improved performance by 25%",
-	// 	draft: false,
-	// 	prerelease: true,
-	// 	created_at: "2024-01-15T10:30:00Z",
-	// 	published_at: "2024-01-15T11:00:00Z",
-	// 	author: {
-	// 		login: "developer",
-	// 		id: 12345
-	// 	},
-	// 	assets: []
-	// };
 
 	let releaseName = release?.name;
 	let releaseBody = release?.body ?? "";
@@ -32018,7 +32000,7 @@ const { setTimeout: index_setTimeout } = __nccwpck_require__(6460);
 			throw `Branch ${releaseBranch} is not a 'release' branch ❌`;
 		}
 
-		releaseName = releaseBranch.replace("release/", "").toUpperCase();
+		releaseName = releaseBranch.replace("release/", "");
 		// releaseBody = `Release branch created: ${releaseBranch}`;
 	}
 
@@ -32086,11 +32068,6 @@ const { setTimeout: index_setTimeout } = __nccwpck_require__(6460);
 	console.log(`Created Jira release: ${jiraRelease.name} with ID: ${jiraRelease.id} ✅`);
 	await index_setTimeout(10000); // Wait to ensure the release is created
 
-	// client.projectVersions.getVersion({
-	// 	projectId: projectId,
-	// 	versionId: jiraRelease.id
-	// });;
-
 	const issuesResult = await client.issueSearch.searchForIssuesUsingJqlEnhancedSearchPost({
 		jql: `project = "${projectKey}" AND summary ~ "${releaseName}"`,
 		fields: ['summary', 'status', 'assignee', 'priority', 'issuetype'],
@@ -32122,10 +32099,10 @@ const { setTimeout: index_setTimeout } = __nccwpck_require__(6460);
 		}
 	});
 
-	console.log(`Transitioned release ticket ${releaseTicket} to 'Locked' state successfully. 🔒`);
+	console.log(`🔒 Transitioned release ticket ${releaseTicket} to 'Locked' state successfully.`);
 })().catch((error) => {
 	console.error(error);
-	core.setFailed(`Syncing Jira releases failed: ${error.message}`);
+	core.setFailed(`❌ Syncing Jira releases failed: ${error.message}`);
 });
 module.exports = __webpack_exports__;
 /******/ })()
