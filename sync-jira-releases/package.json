@@ -1,6 +1,6 @@
 {
   "name": "river-sync-jira-releases",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "GitHub Action to sync releases with Jira",
   "main": "index.js",
   "scripts": {
