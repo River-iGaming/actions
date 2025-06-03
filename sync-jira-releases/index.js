@@ -100,8 +100,10 @@ const { setTimeout } = require("timers/promises");
 
 	console.log(`Release Key is ${projectReleaseKey} resolved:: Project ID for ${projectKey} is ${projectId} and component is ${component}`);
 
-	const versions = await client.projectVersions.getProjectVersions({
-		projectId: projectKey
+	const versions = await client.projectVersions.getProjectVersionsPaginated({
+		projectId: projectKey,
+		maxResults: 1000,
+		startAt: 0
 	});
 
 	const existingVersion = versions.find(v => v.name.toUpperCase() === releaseName.toUpperCase());
