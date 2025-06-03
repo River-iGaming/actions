@@ -1,10 +1,10 @@
 {
-  "name": "river-dotnet-git-check",
+  "name": "river-sync-jira-releases",
   "version": "4.0.0",
-  "description": "",
+  "description": "GitHub Action to sync releases with Jira",
   "main": "index.js",
   "scripts": {
-    "start": "npm run build -- watch",
+    "start": "npm run build -- --watch",
     "build": "ncc build index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -13,6 +13,7 @@
   "dependencies": {
     "@actions/core": "^1.10.0",
     "@actions/github": "^6.0.0",
+    "jira.js": "^5.2.0",
     "semver": "^7.6.3"
   },
   "devDependencies": {

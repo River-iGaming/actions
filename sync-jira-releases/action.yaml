@@ -1,0 +1,16 @@
+name: "Sync Jira Releases"
+description: "Syncs the release with Jira, creating a new release in the specified Jira project"
+inputs:
+  jira-url:
+    description: "The URL of the Jira instance"
+    required: false
+    default: "https://rivertechnologies.atlassian.net"
+  jira-api-token:
+    description: "The API token for Jira"
+    required: true
+  jira-user:
+    description: "The email associated with the Jira account"
+    required: true
+runs:
+  using: "node20"
+  main: "dist/index.js"
