@@ -1,6 +1,7 @@
 const github = require("@actions/github");
 const core = require("@actions/core");
 const { setTimeout } = require("timers/promises");
+const ShortUniqueId = require('short-unique-id');
 
 (async () => {
 
@@ -137,9 +138,10 @@ const { setTimeout } = require("timers/promises");
 		}
 	});
 
+	const uuidGen = new ShortUniqueId({ length: 6 });
 	await client.projectVersions.updateVersion({
 		id: jiraRelease.id,
-		description: `${nameParts[0]}-${nameParts[1]}-${runNumber}`,
+		description: `${nameParts[0]}-${nameParts[1]}-${uuidGen.randomUUID()}`,
 	});
 
 	console.log(`🔒 Transitioned release ticket ${releaseTicket} to 'Locked' state successfully.`);
