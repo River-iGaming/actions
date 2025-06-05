@@ -1,0 +1,15 @@
+name: "Sync Main Release"
+description: "Syncs the release branch with the latest changes from the main branch"
+inputs:
+  package-version:
+    description: "Package version"
+    required: true
+  app-version:
+    description: "The final app version"
+    required: true
+outputs:
+  app-version:
+    description: "The app version generated"
+runs:
+  using: "node20"
+  main: "dist/index.js"
