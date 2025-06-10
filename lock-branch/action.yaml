@@ -37,7 +37,7 @@ runs:
           --input - <<EOF
         {
           "required_pull_request_reviews": {
-            "dismiss_stale_reviews": true,
+            "dismiss_stale_reviews": false,
             "require_code_owner_reviews": ${REQUIRE_CODE_OWNERS},
             "required_approving_review_count": ${REQUIRED_APPROVAL_COUNT}
           },
