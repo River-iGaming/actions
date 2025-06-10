@@ -31834,6 +31834,7 @@ const { execSync } = __nccwpck_require__(5317);
 try {
 	// const branch = github.context.ref.replace("refs/heads/", "");
 	const runNumber = github.context.runNumber;
+	runNumber++;
 	const releaseBranch = github.core.getInput("release-branch", { required: true });
 
 
