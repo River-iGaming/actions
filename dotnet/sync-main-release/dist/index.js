@@ -31836,7 +31836,7 @@ try {
 	const runNumber = github.context.runNumber;
 	const releaseBranch = core.getInput("release-branch", { required: true });
 
-	console.log(`Branch: ${branch}`);
+	console.log(`Branch: ${releaseBranch}`);
 
 	const tags = execSync("git ls-remote --tags")
 		.toString()
