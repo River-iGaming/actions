@@ -1,6 +1,6 @@
 const core = require("@actions/core");
 const github = require("@actions/github");
-const { execSync } = require("child_process");
+const { execSync, exec } = require("child_process");
 
 try {
 	// const branch = github.context.ref.replace("refs/heads/", "");
@@ -18,7 +18,10 @@ try {
 		.filter(x => x)
 		;
 
-	execSync(`git checkout ${releaseBranch}`);
+	execSync(`git fetch origin`);
+	console.log("Fetched latest changes from origin.");
+
+	execSync(`git checkout -b ${releaseBranch} origin/${releaseBranch}`);
 	console.log(`Checked out to release branch: ${releaseBranch}`);
 
 	execSync(`git merge origin/master --no-ff -m "chore(*): merge master into ${{ releaseBranch }}`);

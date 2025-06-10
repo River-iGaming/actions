@@ -31829,7 +31829,7 @@ module.exports = parseParams
 var __webpack_exports__ = {};
 const core = __nccwpck_require__(7484);
 const github = __nccwpck_require__(3228);
-const { execSync } = __nccwpck_require__(5317);
+const { execSync, exec } = __nccwpck_require__(5317);
 
 try {
 	// const branch = github.context.ref.replace("refs/heads/", "");
@@ -31847,7 +31847,10 @@ try {
 		.filter(x => x)
 		;
 
-	execSync(`git checkout ${releaseBranch}`);
+	execSync(`git fetch origin`);
+	console.log("Fetched latest changes from origin.");
+
+	execSync(`git checkout -b ${releaseBranch} origin/${releaseBranch}`);
 	console.log(`Checked out to release branch: ${releaseBranch}`);
 
 	execSync(`git merge origin/master --no-ff -m "chore(*): merge master into ${{ releaseBranch }}`);
