@@ -5,7 +5,6 @@ const { execSync } = require("child_process");
 try {
 	// const branch = github.context.ref.replace("refs/heads/", "");
 	const runNumber = github.context.runNumber;
-	runNumber++;
 	const releaseBranch = github.core.getInput("release-branch", { required: true });
 
 
