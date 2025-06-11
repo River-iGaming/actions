@@ -18,7 +18,7 @@ try {
 	// 	.filter(x => x)
 	// 	;
 
-	execSync(`git config --global user.email "middleware@tech4s.tech"`);
+	execSync(`git config --global user.email "jonathan.sant@river.tech"`);
 	console.log("Configured git user email.");
 
 	execSync(`git config --global user.name "Github Bot"`);
