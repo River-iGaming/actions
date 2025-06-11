@@ -31838,14 +31838,14 @@ try {
 
 	console.log(`Branch: ${releaseBranch}`);
 
-	const tags = execSync("git ls-remote --tags")
-		.toString()
-		.split("\n")
-		.filter(x => x)
-		.map(x => x.split("\t")[1])
-		.map(x => x.replace("refs/tags/", ""))
-		.filter(x => x)
-		;
+	// const tags = execSync("git ls-remote --tags")
+	// 	.toString()
+	// 	.split("\n")
+	// 	.filter(x => x)
+	// 	.map(x => x.split("\t")[1])
+	// 	.map(x => x.replace("refs/tags/", ""))
+	// 	.filter(x => x)
+	// 	;
 
 	execSync(`git fetch origin`);
 	console.log("Fetched latest changes from origin.");
@@ -31853,7 +31853,7 @@ try {
 	execSync(`git checkout -b ${releaseBranch} origin/${releaseBranch}`);
 	console.log(`Checked out to release branch: ${releaseBranch}`);
 
-	execSync(`git merge origin/master --no-ff -m "chore(*): merge master into ${{ releaseBranch }}"`);
+	execSync(`git merge origin/master --allow-unrelated-histories --no-ff -m 'chore(*): merge master into ${{ releaseBranch }}'`);
 	console.log(`Merged master into release branch: ${releaseBranch}`);
 
 	execSync(`git push origin ${releaseBranch}`);
