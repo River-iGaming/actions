@@ -3,34 +3,34 @@ description: Merges a source branch into a target branch and auto-resolves versi
 
 inputs:
   source-branch:
-    description: 'Branch to merge from'
+    description: "Branch to merge from"
     required: true
   target-branch:
-    description: 'Branch to merge into'
+    description: "Branch to merge into"
     required: true
-  conflict-auto-keep-files:  
-    description: 'Files where merge conflicts are automatically resolved by keeping the current branch version'  
-    required: false  
-    default: |  
-      package.json 
-  include-commit:
-    description: 'Whether to commit and push the merged branch'
+  conflict-auto-keep-files:
+    description: "Files where merge conflicts are automatically resolved by keeping the current branch version"
     required: false
-    default: 'true'
+    default: |
+      package.json
+  include-commit:
+    description: "Whether to commit and push the merged branch"
+    required: false
+    default: "true"
   github-token:
-    description: 'GitHub token with write permissions'
+    description: "GitHub token with write permissions"
     required: true
 
 outputs:
   merge-failed:
-    description: 'true if merge is required due to unresolvable conflicts'
+    description: "true if merge is required due to unresolvable conflicts"
     value: ${{ steps.merge.outputs.merge-failed }}
   auto-resolved:
-    description: 'true if conflicts were auto-resolved'
+    description: "true if conflicts were auto-resolved"
     value: ${{ steps.merge.outputs.auto-resolved }}
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Checkout full history
       uses: actions/checkout@v4
@@ -105,5 +105,5 @@ runs:
             echo "::notice::✅ Commit and push to: ${{ inputs.target-branch }}"
            git commit -m "chore(*): merged ${{ inputs.source-branch }} into ${{ inputs.target-branch }}"
           fi
-          git push origin "${{ inputs.target-branch }}"
+          git push origin -f "${{ inputs.target-branch }}"
         fi
