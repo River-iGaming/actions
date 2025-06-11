@@ -31860,7 +31860,7 @@ try {
 	console.log(`Checked out to release branch: ${releaseBranch}`);
 
 	// execSync(`git merge origin/master --allow-unrelated-histories --no-ff -m 'chore(*): merge master into ${ releaseBranch.toString()}'`);
-	execSync(`git merge origin/master --allow-unrelated-histories --no-ff --no-commit'`);
+	execSync(`git merge origin/master --allow-unrelated-histories --no-ff --no-commit`);
 	console.log(`Merged master into release branch: ${releaseBranch}`);
 
 	execSync(`git add . && git commit -m 'chore(*): merge master into ${releaseBranch.tosString()}'`);
