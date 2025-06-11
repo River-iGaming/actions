@@ -31847,6 +31847,12 @@ try {
 	// 	.filter(x => x)
 	// 	;
 
+	execSync(`git config --global user.email "middleware@tech4s.tech"`);
+	console.log("Configured git user email.");
+
+	execSync(`git config --global user.name "Github Bot"`);
+	console.log("Configured git user name.");
+
 	execSync(`git fetch origin`);
 	console.log("Fetched latest changes from origin.");
 
