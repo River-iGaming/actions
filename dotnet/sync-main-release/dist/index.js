@@ -31859,8 +31859,12 @@ try {
 	execSync(`git checkout -b ${releaseBranch} origin/${releaseBranch}`);
 	console.log(`Checked out to release branch: ${releaseBranch}`);
 
-	execSync(`git merge origin/master --allow-unrelated-histories --no-ff -m 'chore(*): merge master into ${ releaseBranch.toString()}'`);
+	// execSync(`git merge origin/master --allow-unrelated-histories --no-ff -m 'chore(*): merge master into ${ releaseBranch.toString()}'`);
+	execSync(`git merge origin/master --allow-unrelated-histories --no-ff --no-commit'`);
 	console.log(`Merged master into release branch: ${releaseBranch}`);
+
+	execSync(`git add . && git commit -m 'chore(*): merge master into ${releaseBranch.tosString()}'`);
+	console.log(`Committed changes to release branch: ${releaseBranch}`);
 
 	execSync(`git push origin ${releaseBranch}`);
 	console.log(`Pushed changes to remote release branch: ${releaseBranch}`);
