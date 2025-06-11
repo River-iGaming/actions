@@ -30,7 +30,7 @@ try {
 	execSync(`git checkout -b ${releaseBranch} origin/${releaseBranch}`);
 	console.log(`Checked out to release branch: ${releaseBranch}`);
 
-	execSync(`git merge origin/master --allow-unrelated-histories --no-ff -m 'chore(*): merge master into ${{ releaseBranch }}'`);
+	execSync(`git merge origin/master --allow-unrelated-histories --no-ff -m 'chore(*): merge master into ${ releaseBranch.toString()}'`);
 	console.log(`Merged master into release branch: ${releaseBranch}`);
 
 	execSync(`git push origin ${releaseBranch}`);
