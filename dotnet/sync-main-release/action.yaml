@@ -1,12 +1,24 @@
 name: "Sync Main Release"
 description: "Syncs the release branch with the latest changes from the main branch"
 inputs:
-  release-branch:
-    description: "The release branch that needs to be synced with main"
+  source-branch:
+    description: "Branch to merge from"
     required: true
-outputs:
-  app-version:
-    description: "The app version generated"
+  target-branch:
+    description: "Branch to merge into"
+    required: true
+  conflict-auto-keep-files:
+    description: "Files where merge conflicts are automatically resolved by keeping the current branch version"
+    required: false
+    default: |
+      package.json
+  include-commit:
+    description: "Whether to commit and push the merged branch"
+    required: false
+    default: "true"
+  github-token:
+    description: "GitHub token with write permissions"
+    required: true
 runs:
   using: "node20"
   main: "dist/index.js"
