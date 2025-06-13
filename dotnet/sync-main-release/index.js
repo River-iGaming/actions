@@ -26,7 +26,7 @@ async function run() {
 
 		try {
 			// Attempt merge
-			await exec.exec('git', ['merge', '--no-commit', '--no-ff', '--no-edit', sourceBranch]);
+			await exec.exec('git', ['merge', '--no-commit', '--no-ff', '--no-edit', "--allow-unrelated-histories", sourceBranch]);
 
 			// Check if there are changes to commit
 			const { stdout: statusOutput } = await exec.getExecOutput('git', ['status', '--porcelain']);
