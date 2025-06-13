@@ -37,8 +37,16 @@ async function run() {
 			// Handle merge conflicts
 			const { stdout: conflictsOutput } = await exec.getExecOutput('git', ['diff', '--name-only', '--diff-filter=U']);
 			const conflicts = conflictsOutput.trim().split('\n').filter(line => line.trim());
+			const { autoResolvable, needsUserInput, hasConflicts } = analyzeConflicts(conflicts);
 
 			core.warning(`Conflicts: ${conflicts.join(', ')}`);
+			if(needsUserInput.length > 0) {
+				core.error(`❌ The following files require manual resolution: ${needsUserInput.join(', ')}`);
+				core.setOutput('needs-user-input', needsUserInput.join(', '));
+				mergeFailed = true;
+
+				throw "Merge failed due to unresolved conflicts. Please resolve them manually.";
+			};
 
 			// Parse auto-keep files
 			const autoKeepFiles = conflictAutoKeepFiles
@@ -48,6 +56,14 @@ async function run() {
 
 			for (const conflictFile of conflicts) {
 				const isAutoKeepFile = autoKeepFiles.includes(conflictFile);
+
+				if(autoResolvable.includes(conflictFile)) {
+					core.notice(`⚠️ Auto-resolving ${conflictFile} version conflicts.`);
+					await exec.exec('git', ['checkout', '--ours', conflictFile]);
+					await exec.exec('git', ['add', conflictFile]);
+
+					continue;
+				}
 
 				if (isAutoKeepFile) {
 					core.notice(`⚠️ Auto-resolving ${conflictFile} version conflicts.`);
@@ -116,6 +132,62 @@ async function run() {
 	} catch (error) {
 		core.setFailed(error.message);
 		throw error;
+	}
+
+	function analyzeConflicts(conflictedFiles) {
+		try {
+			if (conflictedFiles.length === 0) {
+				return { autoResolvable: [], needsUserInput: [], hasConflicts: false };
+			}
+
+			const autoResolvable = [];
+			const needsUserInput = [];
+
+			conflictedFiles.forEach(file => {
+				try {
+					// Check if file has conflict markers
+					const hasConflictMarkers = execSync(`grep -c "^<<<<<<< " "${file}" 2>/dev/null || echo "0"`, { encoding: 'utf8' }).trim();
+
+					if (parseInt(hasConflictMarkers) === 0) {
+						autoResolvable.push(file);
+					} else {
+						// Analyze conflict complexity
+						const conflictBlocks = execSync(`grep -c "^=======" "${file}" 2>/dev/null || echo "0"`, { encoding: 'utf8' }).trim();
+
+						if (parseInt(conflictBlocks) === 1 && isSimpleConflict(file)) {
+							autoResolvable.push(file);
+						} else {
+							needsUserInput.push(file);
+						}
+					}
+				} catch (error) {
+					// If we can't analyze the file, treat it as needing user input
+					needsUserInput.push(file);
+				}
+			});
+
+			return { autoResolvable, needsUserInput, hasConflicts: true };
+		} catch (error) {
+			return { autoResolvable: [], needsUserInput: [], hasConflicts: false };
+		}
+	}
+
+	function isSimpleConflict(file) {
+		try {
+			// Check if it's a simple whitespace or non-overlapping change
+			const diffOutput = execSync(`git diff "${file}"`, { encoding: 'utf8' });
+
+			// Simple heuristics
+			const lines = diffOutput.split('\n');
+			const hasOnlyWhitespace = lines.every(line =>
+				!line.startsWith('+') && !line.startsWith('-') || /^[+-]\s*$/.test(line)
+			);
+			const isSmallChange = lines.length < 10;
+
+			return hasOnlyWhitespace || isSmallChange;
+		} catch (error) {
+			return false;
+		}
 	}
 }
 
