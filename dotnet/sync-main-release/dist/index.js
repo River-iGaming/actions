@@ -34527,6 +34527,7 @@ const core = __nccwpck_require__(7484);
 const exec = __nccwpck_require__(5236);
 const github = __nccwpck_require__(3228);
 const semver = __nccwpck_require__(2088);
+const fs = __nccwpck_require__(9896);
 
 
 async function run() {
@@ -34538,12 +34539,18 @@ async function run() {
 		const includeCommit = core.getInput('include-commit') || 'true';
 		const githubToken = core.getInput('github-token', { required: true });
 
+		// const sourceBranch = "master";
+		// const targetBranch = "release/test-s"
+		// const conflictAutoKeepFiles = "package.json\nREADME.md";
+		// const includeCommit = true;
+		// const githubToken = "";
+
 		let mergeFailed = false;
 		let autoResolved = false;
 
 		// Configure git
-		await exec.exec('git', ['config', 'user.email', 'deploy-bot@riverigaming.com']);
-		await exec.exec('git', ['config', 'user.name', 'rig-autobot']);
+		// await exec.exec('git', ['config', 'user.email', 'deploy-bot@riverigaming.com']);
+		// await exec.exec('git', ['config', 'user.name', 'rig-autobot']);
 		await exec.exec('git', ['fetch', '--all']);
 		await exec.exec('git', ['checkout', targetBranch]);
 
@@ -34565,7 +34572,7 @@ async function run() {
 			const { autoResolvable, needsUserInput, hasConflicts } = analyzeConflicts(conflicts);
 
 			core.warning(`Conflicts: ${conflicts.join(', ')}`);
-			if(needsUserInput.length > 0) {
+			if (needsUserInput.filter(x => !x.includes('package.json')).length > 0) {
 				core.error(`❌ The following files require manual resolution: ${needsUserInput.join(', ')}`);
 				core.setOutput('needs-user-input', needsUserInput.join(', '));
 				mergeFailed = true;
@@ -34582,7 +34589,7 @@ async function run() {
 			for (const conflictFile of conflicts) {
 				const isAutoKeepFile = autoKeepFiles.includes(conflictFile);
 
-				if(autoResolvable.includes(conflictFile)) {
+				if (autoResolvable.includes(conflictFile)) {
 					core.notice(`⚠️ Auto-resolving ${conflictFile} version conflicts.`);
 					await exec.exec('git', ['checkout', '--ours', conflictFile]);
 					await exec.exec('git', ['add', conflictFile]);
@@ -34639,7 +34646,7 @@ async function run() {
 		core.setOutput('auto-resolved', autoResolved.toString());
 
 		// Commit and push if requested and merge didn't fail
-		if (includeCommit === 'true' && !mergeFailed) {
+		if (includeCommit.toString().toLowerCase() === "true" && !mergeFailed) {
 			const { stdout: statusOutput } = await exec.getExecOutput('git', ['status', '--porcelain']);
 
 			if (statusOutput.trim()) {
