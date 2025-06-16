@@ -34549,8 +34549,8 @@ async function run() {
 		let autoResolved = false;
 
 		// Configure git
-		// await exec.exec('git', ['config', 'user.email', 'deploy-bot@riverigaming.com']);
-		// await exec.exec('git', ['config', 'user.name', 'rig-autobot']);
+		await exec.exec('git', ['config', 'user.email', 'deploy-bot@riverigaming.com']);
+		await exec.exec('git', ['config', 'user.name', 'rig-autobot']);
 		await exec.exec('git', ['fetch', '--all']);
 		await exec.exec('git', ['checkout', targetBranch]);
 
