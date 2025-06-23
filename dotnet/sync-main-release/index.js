@@ -198,4 +198,6 @@ async function run() {
 	}
 }
 
-run();
+run().catch(error => {
+ core.setFailed(`Action failed with error: ${error.message}`);
+});

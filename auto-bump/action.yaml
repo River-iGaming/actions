@@ -3,40 +3,43 @@ description: This action automatically bumps the version based on semver input.
 
 inputs:
   branch:
-    description: 'Branch to bump the version on'
+    description: "Branch to bump the version on"
     required: false
-    default: 'master'
+    default: "master"
   semver:
-    description: 'Semver version bump type (major, minor, patch)'
+    description: "Semver version bump type (major, minor, patch)"
     required: false
-    default: 'patch'
+    default: "patch"
+  custom-version:
+    description: "Custom version to set (overrides semver if provided)"
+    required: false
   package_path:
-    description: 'Path to package.json directory'
+    description: "Path to package.json directory"
     required: false
-    default: './'
+    default: "./"
   include-commit:
-    description: 'Whether to commit and push the bumped version'
+    description: "Whether to commit and push the bumped version"
     required: false
-    default: 'true'
+    default: "true"
   skip-checkout:
-    description: 'Whether to checkout the target branch'
+    description: "Whether to checkout the target branch"
     required: false
-    default: 'false'
+    default: "false"
   node-version:
-    description: 'Node.js version to use'
+    description: "Node.js version to use"
     required: false
-    default: '22'
+    default: "22"
   github-token:
-    description: 'GitHub token with write permissions'
+    description: "GitHub token with write permissions"
     required: true
 
 outputs:
   all:
-    description: 'All output in JSON'
+    description: "All output in JSON"
     value: ${{ steps.bundle_output.outputs.all }}
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Checkout target branch
       if: inputs.skip-checkout == 'false'
@@ -50,8 +53,8 @@ runs:
       id: skip-check
       uses: River-iGaming/actions/commit-type-check@v4
       with:
-        commit-types: 'chore(package): auto bump version'
-        error-on-match: 'true'
+        commit-types: "chore(package): auto bump version"
+        error-on-match: "true"
         skip-checkout: ${{ inputs.skip-checkout }}
         github-token: ${{ inputs.github-token }}
 
@@ -70,7 +73,12 @@ runs:
         current_version=$(jq -r '.version' package.json)
         echo "Current version: $current_version"
 
-        npm version --no-git-tag-version ${{ inputs.semver }}
+        if [ -n "${{ inputs.custom-version }}" ]; then
+          echo "Setting version to ${{ inputs.custom-version }}"
+          npm version --no-git-tag-version ${{ inputs.custom-version }}
+        else
+          npm version --no-git-tag-version ${{ inputs.semver }}
+        fi
 
         new_version=$(jq -r '.version' package.json)
         echo "New version: $new_version"
