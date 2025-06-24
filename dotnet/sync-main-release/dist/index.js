@@ -34582,7 +34582,7 @@ async function run() {
 
 			// Parse auto-keep files
 			const autoKeepFiles = conflictAutoKeepFiles
-				.split('\n')
+				.split(',')
 				.map(file => file.trim())
 				.filter(file => file.length > 0);
 
