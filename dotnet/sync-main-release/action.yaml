@@ -8,9 +8,10 @@ inputs:
     description: "Branch to merge into"
     required: true
   conflict-auto-keep-files:
-    description: "Files where merge conflicts are automatically resolved by keeping the current branch version (comma-separated list, e.g. 'package.json,README.md')"
+    description: "Files where merge conflicts are automatically resolved by keeping the current branch version"
     required: false
-    default: "package.json"
+    default: |
+      package.json
   include-commit:
     description: "Whether to commit and push the merged branch"
     required: false
