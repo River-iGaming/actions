@@ -42,7 +42,6 @@ runs:
         if [ "$REQUIRED_STATUS_CHECKS" != "[]" ] && [ -n "$REQUIRED_STATUS_CHECKS" ]; then
           echo "Required status checks: $REQUIRED_STATUS_CHECKS"
           echo "Strict status check: $STRICT_STATUS_CHECK"
-
           STATUS_CHECKS="{\"strict\": $STRICT_STATUS_CHECK, \"contexts\": $REQUIRED_STATUS_CHECKS}"
         else
           echo "No status checks required"
