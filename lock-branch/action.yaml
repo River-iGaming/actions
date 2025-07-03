@@ -48,7 +48,7 @@ runs:
           STATUS_CHECKS='null'
         fi
 
-        echo "Locking branch with $REQUIRED_APPROVAL_COUNT required approvals, code owner review requirement set to $REQUIRE_CODE_OWNERS, and status checks: $STATUS_CHECKS"
+        echo "Locking branch with $REQUIRED_APPROVAL_COUNT required approvals, code owner review requirement set to $REQUIRE_CODE_OWNERS and status checks $STATUS_CHECKS"
 
         gh api -X PUT "/repos/${{ github.repository }}/branches/${{ inputs.branch_name }}/protection" \
           -H "Accept: application/vnd.github.v3+json" \
