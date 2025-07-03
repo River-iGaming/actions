@@ -17,6 +17,14 @@ inputs:
     description: "The number of approvals required"
     required: false
     default: 1
+  required_status_checks:
+    description: "Array of required status checks"
+    required: false
+    default: "[]"
+  strict_status_check:
+    description: "Require status checks to be up-to-date before merging"
+    required: false
+    default: true
 
 runs:
   using: "composite"
@@ -28,8 +36,21 @@ runs:
 
         REQUIRE_CODE_OWNERS=${{ inputs.require_code_owner_reviews }}
         REQUIRED_APPROVAL_COUNT=${{ inputs.required_approval_count }}
+        REQUIRED_STATUS_CHECKS='${{ inputs.required_status_checks }}'
+        STRICT_STATUS_CHECK=${{ inputs.strict_status_check }}
 
         echo "Locking branch with $REQUIRED_APPROVAL_COUNT required approvals and code owner review requirement set to $REQUIRE_CODE_OWNERS"
+
+        # Handle status checks
+        if [ "$REQUIRED_STATUS_CHECKS" != "[]" ] && [ -n "$REQUIRED_STATUS_CHECKS" ]; then
+          echo "Required status checks: $REQUIRED_STATUS_CHECKS"
+          echo "Strict status check: $STRICT_STATUS_CHECK"
+
+          STATUS_CHECKS="{\"strict\": $STRICT_STATUS_CHECK, \"contexts\": $REQUIRED_STATUS_CHECKS}"
+        else
+          echo "No status checks required"
+          STATUS_CHECKS='null'
+        fi
 
         gh api -X PUT "/repos/${{ github.repository }}/branches/${{ inputs.branch_name }}/protection" \
           -H "Accept: application/vnd.github.v3+json" \
@@ -41,7 +62,7 @@ runs:
             "require_code_owner_reviews": ${REQUIRE_CODE_OWNERS},
             "required_approving_review_count": ${REQUIRED_APPROVAL_COUNT}
           },
-          "required_status_checks": null,
+          "required_status_checks": ${STATUS_CHECKS},
           "restrictions": null,
           "enforce_admins": false,
           "allow_deletions": true
