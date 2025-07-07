@@ -36,7 +36,7 @@ runs:
 
         REQUIRE_CODE_OWNERS=${{ inputs.require_code_owner_reviews }}
         REQUIRED_APPROVAL_COUNT=${{ inputs.required_approval_count }}
-        REQUIRED_STATUS_CHECKS='${{ inputs.required_status_checks }}'
+        REQUIRED_STATUS_CHECKS=${{ inputs.required_status_checks }}
         STRICT_STATUS_CHECK=${{ inputs.strict_status_check }}
 
         if [ "$REQUIRED_STATUS_CHECKS" != "[]" ] && [ -n "$REQUIRED_STATUS_CHECKS" ]; then
