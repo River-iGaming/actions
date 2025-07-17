@@ -33686,9 +33686,10 @@ try {
 		return;
 	}
 
-	if(!isVersionAlterableBranchBranch && !coreVersionTagMatch) {
-		throw `Version ${version} was altered in a non-version alterable branch. This can only be done in release branches.`;
-	}
+	// todo: maybe add the check back but make it more intelligent so that merges from release to feature do not fail on version checks
+	// if(!isVersionAlterableBranchBranch && !coreVersionTagMatch) {
+	// 	throw `Version ${version} was altered in a non-version alterable branch. This can only be done in release branches.`;
+	// }
 
 	if (isVersionAlterableBranchBranch) {
 		const versionDiff = semver.diff(lastStableVersionTagMatch, version);
