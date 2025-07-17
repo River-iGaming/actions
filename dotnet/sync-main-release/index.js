@@ -111,6 +111,7 @@ async function run() {
 				} else {
 					core.error(`❌ Conflict in ${conflictFile} cannot be auto-resolved. Aborting merge.`);
 					mergeFailed = true;
+					core.setFailed(`Merge failed due to unresolved conflicts in ${conflictFile}. Please resolve them manually.`);
 					break;
 				}
 			}
