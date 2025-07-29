@@ -105,7 +105,7 @@ function generateFeLibraryVersionString(branch, version, runNumber) {
 		case "develop":
 			return generateFinalVersionName(version, "dev", runNumber);
 		default:
-			if (branch.startsWith("feature")) {
+			if (branch.startsWith("feature") || branch.startsWith("masters")) {
 				return generateFinalVersionName(version, normalizeBranchName(branch, true), runNumber);
 			}
 			if (branch.startsWith("release")) {
