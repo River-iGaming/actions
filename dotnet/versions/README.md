@@ -6,5 +6,5 @@ Generates version based on branches
 ```bash
 npm run build
 # update tag
-TAG=v2 && git tag -f $TAG && git push origin $TAG -f
+TAG=v4 && git tag -f $TAG && git push origin $TAG -f
 ```
