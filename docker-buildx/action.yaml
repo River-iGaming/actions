@@ -8,9 +8,14 @@ inputs:
   path:
     description: 'Directory containing the Docker and docker-compose files'
     required: true
+    default: '.'
   registry:
     description: 'Registry URI where to publish the docker images'
     required: true
+  name:
+    description: 'Name of the module being built.'
+    required: false
+    default: ''
   tag:
     description: 'The tag to apply to the docker image'
     required: false
@@ -27,7 +32,10 @@ inputs:
     required: false
     default: ''
     description: 'A space-separated list of environment variable names to use as build arguments'
-
+  compose:
+    required: false
+    default: ''
+    description: 'Custom docker-compose file to use when building the docker images'
 
 outputs:
   image-tag:
@@ -63,8 +71,13 @@ runs:
       working-directory: ${{ inputs.path }}
       shell: bash
       run: |
-        VERSION=$(cat package.json | jq ".version" | xargs)
-        echo "TAG=$VERSION" >> $GITHUB_ENV
+        if [ -f package.json ]; then
+          VERSION=$(cat package.json | jq ".version" | xargs)
+          echo "TAG=$VERSION" >> $GITHUB_ENV
+        else
+          echo "::error:: Tag not specified, and package.json not found, stopping build"
+          exit 1
+        fi
 
     - name: Use supplied version
       if: ${{ inputs.tag != '' }}
@@ -72,24 +85,58 @@ runs:
       run: |
         echo "TAG=${{ inputs.tag }}" >> $GITHUB_ENV
 
+    - name: Load module name from package.json
+      if: ${{ inputs.name == '' }}
+      working-directory: ${{ inputs.path }}
+      shell: bash
+      run: |
+        if [ -f package.json ]; then
+          NAME=$(cat package.json | jq ".name" | xargs)
+          echo "NAME=$NAME" >> $GITHUB_ENV
+        else
+          echo "::notice:: Name not specified, and package.json not found, skipping"
+        fi
+
+    - name: Use supplied 'name'
+      if: ${{ inputs.name != '' }}
+      shell: bash
+      run: |
+        echo "NAME=${{ inputs.name }}" >> $GITHUB_ENV
+
     - name: Setup environment variables
       working-directory: ${{ inputs.path }}
       shell: bash
       env:
         ECR_HOST: ${{ inputs.registry }}
+        ECR_REPOSITORY: ${{ inputs.repository }}
       run: |
-        NAME=$(cat package.json | jq ".name" | xargs)
-        echo "NAME=$NAME" >> $GITHUB_ENV
-
+        
+        # ensure ECR_HOST and ECR_REPOSITORY are available across all tasks
+        echo "ECR_HOST=$ECR_HOST" >> $GITHUB_ENV
+        echo "ECR_REGISTRY=$ECR_HOST" >> $GITHUB_ENV
+        echo "ECR_REPOSITORY=$ECR_REPOSITORY" >> $GITHUB_ENV
+        
         # determine AWS registry ID
         [[ $ECR_HOST =~ ^([0-9]*) ]] && AWS_REGISTRY_ID=${BASH_REMATCH[1]}
         echo "AWS_REGISTRY_ID=$AWS_REGISTRY_ID" >> $GITHUB_ENV
 
-    - name: Load docker-compose file
-      working-directory: ${{ inputs.path }}
+    - name: Use supplied docker-compose file
       shell: bash
+      if: ${{ inputs.compose != '' }}
       env:
         ECR_HOST: ${{ inputs.registry }}
+      run: |
+        cat >/tmp/docker-compose.build.yml <<EOL
+        ${{ inputs.compose }}
+        EOL
+        
+        echo "::notice:: Using compose file supplied from inputs." 
+        echo "DOCKER_COMPOSE_FILE=/tmp/docker-compose.build.yml" >> $GITHUB_ENV
+
+    - name: Use in-repo docker-compose file, if available, otherwise generate single use file
+      working-directory: ${{ inputs.path }}
+      if: ${{ inputs.compose == '' }}
+      shell: bash
       run: |
         if [ ! -f docker-compose.yml ]; then
           echo "::info::Generating docker-compose file"
@@ -102,13 +149,16 @@ runs:
               dockerfile: Dockerfile
             platform: linux/amd64,linux/arm64
         EOL
+          echo "::notice:: Using generated docker-compose file." 
+          echo "DOCKER_COMPOSE_FILE=/tmp/docker-compose.build.yml" >> $GITHUB_ENV
+        else
+          echo "::notice:: Using in-repo docker-compose file." 
+          echo "DOCKER_COMPOSE_FILE=`pwd`/docker-compose.yml" >> $GITHUB_ENV
         fi
-
-        SERVICES=$(cat docker-compose.yml | yq eval '.services | keys' -P | sed 's/- //')
-        echo "SERVICES=$SERVICES" >> $GITHUB_ENV
 
     - name: Start Build
       id: build
+      working-directory: ${{ inputs.path }}
       run: |
         #! /bin/bash
 
@@ -163,11 +213,22 @@ runs:
         }
         
         function exe() { echo "\$ $@" ; "$@" ; }
-
+        
+        
+        # load docker compose file
+        echo "::notice:: Loading $DOCKER_COMPOSE_FILE compose file"
+        
+        echo "===="
+        cat $DOCKER_COMPOSE_FILE        
+        echo "===="
+        echo "Extracting list of services to build."
+        
+        SERVICES=$(cat $DOCKER_COMPOSE_FILE | yq eval '.services | keys' -P | sed 's/- //')
+        
         RENDERED_COMPOSE_FILE="/tmp/rendered-compose.yaml"
 
         echo "=== Diagnostics ==="
-        echo "SERVICES=$SERVICES"
+        env
 
         # start build loop
         DID_BUILD=0
@@ -176,7 +237,7 @@ runs:
           echo "Building service ${service}"
 
           # Render docker-compose file every iteration, just in case we have diff environment variables
-          docker compose config > $RENDERED_COMPOSE_FILE
+          docker compose -f $DOCKER_COMPOSE_FILE config > $RENDERED_COMPOSE_FILE
 
           # arguments that are optional, and need to be passed to docker buildx
           PLATFORM_ARGS=""
@@ -242,11 +303,11 @@ runs:
           echo "${service} - Building image with tag '"${IMAGE_TAG}"'"
 
           exe docker buildx build $BUILD_ARGS $PLATFORM_ARGS -t ${IMAGE_TAG} -f ${DOCKER_FILE} --progress plain ${PUSH_ARG} .
-          echo "${service} - Build complete"
+          echo "${service} - Build complete"          
+          echo "::notice::DockerRepoAndTag: $IMAGE_TAG"
 
           # outputs
           echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
         done
-      working-directory: ${{ inputs.path }}
       shell: bash
 
