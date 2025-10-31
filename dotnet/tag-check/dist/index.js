@@ -33719,9 +33719,14 @@ function shouldOverrideChecks(lastComment, branch) {
 }
 
 function getLastStableVersionFromTags(tags) {
+	if(!tags || tags.length === 0) {
+		return "0.0.0";
+	}
+
 	const stableTags = tags.filter(x => semver.parse(x)?.prerelease.length === 0);
 	const tagFound = semver.rsort(stableTags)[0];
-	return tagFound;
+
+	return tagFound ?? "0.0.0";
 }
 })();
 
